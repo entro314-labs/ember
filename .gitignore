@@ -27,9 +27,13 @@ profile.cov
 go.work
 go.work.sum
 
+/dist
+/binaries
 # env file
 .env
 
 # Editor/IDE
 # .idea/
 # .vscode/
+FUNCTIONAL_TEST_REPORT.md
+MODERNIZATION.md

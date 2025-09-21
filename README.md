@@ -1,12 +1,12 @@
 # Ember 🫗
 
-A modern, intelligent terminal application for creating bootable Windows USB drives with advanced 2025 features and beautiful TUI interface.
+A modern, intelligent terminal application for creating bootable Windows USB drives with advanced features and beautiful TUI interface.
 
 [![Build and Test](https://github.com/entro314-labs/Ember/actions/workflows/build.yml/badge.svg)](https://github.com/entro314-labs/Ember/actions/workflows/build.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/entro314-labs/Ember)](https://goreportcard.com/report/github.com/entro314-labs/Ember)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## ✨ 2025 Enhanced Features
+## ✨ Features
 
 🧠 **Intelligent ISO Analysis** - Automatic detection of Windows version, install.wim size, and optimal filesystem
 🔄 **Dual-Partition UEFI:NTFS** - Smart handling of large files (>4GB) with automatic dual-partition creation
@@ -40,7 +40,7 @@ sudo ./ember
 
 ### Headless Mode
 ```bash
-# Modern Windows 11 with intelligent defaults
+# Windows 11 with intelligent defaults
 ./ember --iso ~/Windows11.iso --device disk2
 
 # With performance optimization
@@ -83,7 +83,7 @@ sudo ./ember
 - **Windows Version Detection** - Identifies Windows 7/8/10/11 requirements
 - **Filesystem Recommendations** - Smart FAT32/NTFS/ExFAT selection
 
-### 2025 Windows 11 Optimizations
+### Windows 11 Optimizations
 - **Large Install.wim Handling** - Automatic dual-partition for >4GB files
 - **Modern UEFI Support** - GPT partition tables with optimal ESP sizing
 - **Windows 11 24H2 Ready** - Latest compatibility and requirements
@@ -209,7 +209,7 @@ go build ./cmd/ember
 
 ## 📄 License
 
-Licensed under the Apache License 2.0 - see [LICENSE](LICENSE) for details.
+Licensed under the MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 

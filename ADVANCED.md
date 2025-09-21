@@ -22,7 +22,7 @@ Ember implements the latest 2025 best practices for Windows USB creation:
 
 #### GPT-First Approach
 ```bash
-# GPT is now the default (2025 standard)
+# GPT is now the  standard
 ./ember --iso Win11.iso --device disk2  # Uses GPT
 
 # Explicit GPT usage
@@ -183,12 +183,12 @@ Perfect for quick, straightforward USB creation:
 
 ```
 ┌─────────────────────────────────────┐
-│ Ember - Windows USB Creator         │
+│ Ember - Windows USB Creator                          │
 ├─────────────────────────────────────┤
-│ 🔍 Smart ISO Discovery             │
-│ 💿 Browse for ISO                   │
+│ 🔍 Smart ISO Discovery                                      │
+│ 💿 Browse for ISO                                             
 │ 🚀 Advanced Mode                    │
-│ ❌ Exit                             │
+│ ❌ Exit                                                     │
 └─────────────────────────────────────┘
 ```
 
@@ -204,7 +204,7 @@ For power users requiring fine-grained control:
 
 ```
 ┌─────────────────────────────────────┐
-│ 🫗 Ember Advanced Mode              │
+│ 🫗 Ember Advanced Mode                                  │
 ├─────────────────────────────────────┤
 │ 🔍 Select Windows ISO               │
 │ 💿 Select Target Device             │
@@ -255,10 +255,10 @@ Device Selection:
 ```text
 Ember Architecture:
 ┌─────────────────────────────────────┐
-│ CLI Interface (cmd/ember/main.go)   │
+│ CLI Interface (cmd/ember/main.go)               │
 ├─────────────────────────────────────┤
-│ TUI Interfaces (internal/ui/)       │
-│ ├─ Basic TUI (tui.go)              │
+│ TUI Interfaces (internal/ui/)                             │
+│ ├─ Basic TUI (tui.go)                                        │
 │ └─ Advanced TUI (advanced_tui.go)   │
 ├─────────────────────────────────────┤
 │ Core Engine (internal/device/)      │
@@ -395,7 +395,7 @@ For older Windows versions or smaller ISOs:
 ```text
 MBR Partition Table:
 ┌─────────────────────────────────────┐
-│ Primary Partition                   │
+│ Primary Partition                                            │
 │ Type: 0x0C (FAT32 LBA)             │
 │ Size: Full USB capacity            │
 │ Format: FAT32                       │
