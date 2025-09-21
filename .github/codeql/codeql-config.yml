@@ -1,0 +1,31 @@
+name: "Ember CodeQL Config"
+disable-default-queries: false
+
+queries:
+  - name: "Go Security Queries"
+    uses: security-and-quality
+
+  - name: "Go Best Practices"
+    uses: security-extended
+
+paths-ignore:
+  - "vendor/**"
+  - "binaries/**"
+  - "ms-sys/**"
+  - "**/*_test.go"
+  - "**/testdata/**"
+
+paths:
+  - "**/*.go"
+
+query-filters:
+  - exclude:
+      id: go/unused-variable
+      reason: "Test files may have intentionally unused variables"
+      
+packs:
+  - codeql/go-queries
+
+database:
+  interpret-results: true
+  include-generated-code: false

@@ -1,0 +1,138 @@
+name: Bug Report
+description: Report a bug to help us improve Ember
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out this form as completely as possible.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight Checklist
+      description: Please ensure you've completed these steps
+      options:
+        - label: I have searched existing issues for similar problems
+          required: true
+        - label: I have updated to the latest version of Ember
+          required: true
+        - label: I have read the troubleshooting guide in the README
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Ember Version
+      description: What version of Ember are you running?
+      placeholder: "v1.0.0 or output of ./ember --version"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - macOS (Intel)
+        - macOS (Apple Silicon)
+        - Linux (Ubuntu/Debian)
+        - Linux (CentOS/RHEL/Fedora)
+        - Linux (Arch)
+        - Linux (Other)
+        - Windows 10
+        - Windows 11
+        - FreeBSD
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: go-version
+    attributes:
+      label: Go Version (if building from source)
+      description: Output of `go version`
+      placeholder: "go version go1.25.1 darwin/arm64"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: "Describe what happened and what you expected to happen"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Run ember command '...'
+        2. Select device '...'
+        3. Choose ISO file '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear description of what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: A clear description of what actually happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log Output
+      description: |
+        Please include relevant log output. Run ember with `--verbose` flag for detailed logs.
+        Tip: You can attach images or log files by clicking this area to highlight it and then dragging files in.
+      render: shell
+
+  - type: input
+    id: device
+    attributes:
+      label: USB Device
+      description: What USB device are you using? (Brand, model, capacity)
+      placeholder: "SanDisk Ultra 32GB USB 3.0"
+
+  - type: input
+    id: iso
+    attributes:
+      label: ISO File
+      description: What Windows ISO are you trying to use?
+      placeholder: "Windows 11 22H2 (official Microsoft ISO)"
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: "Any additional information that might help us understand the issue"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms
+      description: By submitting this issue, you agree to our terms
+      options:
+        - label: I understand that this is volunteer-maintained software
+          required: true
+        - label: I have provided sufficient information for the maintainers to investigate
+          required: true

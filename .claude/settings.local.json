@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/dominikospritis/DevFolder/WoeUSB-ng-py/**)",
+      "Bash(./ember --help)",
+      "Bash(timeout:*)",
+      "Bash(./ember --version)",
+      "Bash(diskutil:*)",
+      "Read(//Users/dominikospritis/Downloads/**)",
+      "Bash(./ember:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

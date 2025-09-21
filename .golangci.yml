@@ -1,0 +1,54 @@
+# golangci-lint configuration for Ember project
+run:
+  timeout: 10m
+  go: "1.25"
+  tests: true
+
+linters:
+  enable:
+    # Core linters
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Vet examines Go source code and reports suspicious constructs
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Go static analysis
+    - typecheck     # Type checker
+    - unused        # Check for unused constants, variables, functions and types
+    
+    # Style linters
+    - gofmt         # Check whether code was gofmt-ed
+    - goimports     # Check import formatting
+    - revive        # Fast, configurable, extensible, flexible, and beautiful linter for Go
+    - stylecheck    # Replacement for golint
+    
+    # Bug detection
+    - bodyclose     # Check whether HTTP response body is closed successfully
+    - rowserrcheck  # Check whether Err of rows is checked successfully
+    - sqlclosecheck # Check that sql.Rows and sql.Stmt are closed
+    
+    # Performance
+    - prealloc      # Find slice declarations that could potentially be preallocated
+    
+    # Security
+    - gosec         # Inspect source code for security problems
+    
+    # Code quality
+    - dupl          # Tool for code clone detection
+    - gocritic      # Highly extensible Go linter
+    - goconst       # Find repeated strings that could be replaced by a constant
+    - gomnd         # Detect magic numbers
+    - misspell      # Find commonly misspelled English words
+    - unconvert     # Remove unnecessary type conversions
+    - unparam       # Report unused function parameters
+    - whitespace    # Detection of leading and trailing whitespace
+    
+    # Error handling
+    - errorlint     # Find code that will cause problems with the error wrapping scheme
+    
+    # Testing
+    - testpackage   # Make sure that separate _test packages are used
+    - tparallel     # Detect inappropriate usage of t.Parallel() method in your Go test codes
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10

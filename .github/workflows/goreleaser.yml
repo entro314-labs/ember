@@ -1,0 +1,122 @@
+name: GoReleaser
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.2.3)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (do not publish)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  GO_VERSION: '1.25'
+  REGISTRY: ghcr.io
+
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
+jobs:
+  goreleaser:
+    name: Release with GoReleaser
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Install Cosign for signing
+        uses: sigstore/cosign-installer@v3
+
+      - name: Create tag for workflow dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag ${{ inputs.tag }}
+
+      - name: Run GoReleaser (Release)
+        if: ${{ !inputs.dry_run }}
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COSIGN_EXPERIMENTAL: 1
+
+      - name: Run GoReleaser (Dry Run)
+        if: ${{ inputs.dry_run }}
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean --skip=publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload dry run artifacts
+        if: ${{ inputs.dry_run }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: goreleaser-artifacts
+          path: dist/
+          retention-days: 7
+
+      - name: Release summary
+        run: |
+          echo "## 🚀 GoReleaser Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "**Mode:** Dry Run (no publishing)" >> $GITHUB_STEP_SUMMARY
+            echo "**Artifacts:** Available in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Mode:** Full Release" >> $GITHUB_STEP_SUMMARY
+            echo "**Release URL:** https://github.com/${{ github.repository }}/releases" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Built Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Cross-platform binaries (Linux, macOS, Windows, FreeBSD)" >> $GITHUB_STEP_SUMMARY
+          echo "- Multi-architecture support (amd64, arm64, 386)" >> $GITHUB_STEP_SUMMARY
+          echo "- Container images (multi-arch)" >> $GITHUB_STEP_SUMMARY
+          echo "- Checksums and signatures" >> $GITHUB_STEP_SUMMARY
+          echo "- SBOM files" >> $GITHUB_STEP_SUMMARY

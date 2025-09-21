@@ -1,0 +1,117 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for Ember
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a feature! Please fill out this form as completely as possible.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight Checklist
+      description: Please ensure you've completed these steps
+      options:
+        - label: I have searched existing issues for similar feature requests
+          required: true
+        - label: I have checked the project roadmap and documentation
+          required: true
+        - label: This feature would benefit the broader user community
+          required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Feature Type
+      description: What type of feature are you requesting?
+      options:
+        - User Interface Enhancement
+        - New Platform Support
+        - Performance Improvement
+        - New ISO Format Support
+        - Security Enhancement
+        - Developer Experience
+        - Documentation Improvement
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see implemented
+      placeholder: "I would like to see..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Describe any alternative solutions or features you've considered
+      placeholder: "Alternatively, we could..."
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe your specific use case for this feature
+      placeholder: "This feature would help me..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Important for my workflow
+        - Critical - Blocking my use of Ember
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: implementation
+    attributes:
+      label: Implementation Willingness
+      description: Are you willing to help implement this feature?
+      options:
+        - label: I'm willing to submit a pull request
+        - label: I can help with testing
+        - label: I can help with documentation
+        - label: I can provide detailed requirements
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples about the feature request here
+      placeholder: "Include any screenshots, mockups, or examples that help explain your request"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms
+      description: By submitting this feature request, you agree to our terms
+      options:
+        - label: I understand that this is volunteer-maintained software and features may take time to implement
+          required: true
+        - label: I understand that not all feature requests can be accommodated
+          required: true

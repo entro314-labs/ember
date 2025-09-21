@@ -1,0 +1,392 @@
+# GoReleaser configuration for Ember
+# https://goreleaser.com/
+
+version: 2
+
+project_name: ember
+
+# Git configuration
+git:
+  tag_sort: -version:refname
+
+# Build configuration
+builds:
+  - id: ember
+    main: .
+    binary: ember
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.buildTime={{.Date}}
+      - -X main.gitCommit={{.FullCommit}}
+    goos:
+      - linux
+      - darwin
+      - windows
+      - freebsd
+    goarch:
+      - amd64
+      - arm64
+      - "386"
+    ignore:
+      # Skip 32-bit builds for some platforms
+      - goos: darwin
+        goarch: "386"
+      - goos: freebsd
+        goarch: arm64
+      - goos: freebsd
+        goarch: "386"
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+
+# Archive configuration
+archives:
+  - id: ember
+    builds:
+      - ember
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - binaries/*
+    wrap_in_directory: false
+
+# Checksum configuration
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+# Snapshot configuration (for non-tag builds)
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+# Changelog configuration
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+  groups:
+    - title: "🚀 New Features"
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: "🐛 Bug Fixes"
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: "🔒 Security Updates"
+      regexp: '^.*?sec(\(.+\))??!?:.+$'
+      order: 2
+    - title: "📚 Documentation"
+      regexp: '^.*?docs(\(.+\))??!?:.+$'
+      order: 3
+    - title: "⚡ Performance Improvements"
+      regexp: '^.*?perf(\(.+\))??!?:.+$'
+      order: 4
+    - title: "🧹 Maintenance"
+      regexp: '^.*?(refactor|style)(\(.+\))??!?:.+$'
+      order: 5
+    - title: "⬆️ Dependencies"
+      regexp: '^.*?deps(\(.+\))??!?:.+$'
+      order: 6
+    - title: "Other Changes"
+      order: 999
+
+# GitHub release configuration
+release:
+  github:
+    owner: entro314-labs
+    name: ember
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## Ember {{ .Tag }}
+    
+    **{{ .Date }}**
+    
+    This release includes {{ len .Commits }} commits from {{ len .CommitGroups }} contributors.
+    
+    ### 📦 Installation
+    
+    #### Binary Downloads
+    Choose the appropriate binary for your platform from the assets below.
+    
+    #### Package Managers
+    ```bash
+    # Homebrew (macOS/Linux)
+    brew install entro314-labs/tap/ember
+    
+    # Scoop (Windows)
+    scoop bucket add entro314-labs https://github.com/entro314-labs/scoop-bucket
+    scoop install ember
+    
+    # Docker
+    docker pull ghcr.io/entro314-labs/ember:{{ .Tag }}
+    ```
+    
+    #### Quick Installation Script
+    ```bash
+    # Linux/macOS
+    curl -sSL https://install.ember.sh | sh
+    
+    # Or manually
+    curl -L -o ember.tar.gz "https://github.com/entro314-labs/ember/releases/download/{{ .Tag }}/ember-{{ .Tag }}-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/').tar.gz"
+    tar -xzf ember.tar.gz
+    sudo mv ember /usr/local/bin/
+    ```
+    
+    ### 🔒 Verification
+    All binaries are signed and include attestations. Verify checksums with:
+    ```bash
+    sha256sum -c checksums.txt
+    ```
+    
+    ### ⚠️ Breaking Changes
+    {{ if .IsPrerelease }}This is a pre-release version. Use with caution in production environments.{{ end }}
+  footer: |
+    ### 🐳 Container Images
+    
+    ```bash
+    # Pull the latest release
+    docker pull ghcr.io/entro314-labs/ember:{{ .Tag }}
+    docker pull ghcr.io/entro314-labs/ember:latest
+    
+    # Run Ember in a container (requires privileged mode for USB access)
+    docker run --rm -it --privileged \
+      -v /dev:/dev \
+      ghcr.io/entro314-labs/ember:{{ .Tag }}
+    ```
+    
+    ### 📝 Full Changelog
+    **Full Changelog**: https://github.com/entro314-labs/ember/compare/{{ .PreviousTag }}...{{ .Tag }}
+    
+    ### 🆘 Support
+    - 📖 [Documentation](https://github.com/entro314-labs/ember#readme)
+    - 💬 [Discussions](https://github.com/entro314-labs/ember/discussions)
+    - 🐛 [Report Issues](https://github.com/entro314-labs/ember/issues/new/choose)
+  extra_files:
+    - glob: ./binaries/*
+    - glob: ./SECURITY.md
+    - glob: ./CONTRIBUTING.md
+
+# Docker image configuration
+dockers:
+  - image_templates:
+      - "ghcr.io/entro314-labs/ember:{{ .Tag }}-amd64"
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}-amd64"
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "ghcr.io/entro314-labs/ember:latest-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/entro314-labs/ember"
+      - "--label=org.opencontainers.image.description=Modern, cross-platform terminal application for creating bootable Windows USB drives"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/amd64"
+      - "--build-arg=VERSION={{.Version}}"
+      - "--build-arg=BUILD_TIME={{.Date}}"
+      - "--build-arg=GIT_COMMIT={{.FullCommit}}"
+    goarch: amd64
+
+  - image_templates:
+      - "ghcr.io/entro314-labs/ember:{{ .Tag }}-arm64"
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}-arm64"
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}.{{ .Minor }}-arm64"
+      - "ghcr.io/entro314-labs/ember:latest-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/entro314-labs/ember"
+      - "--label=org.opencontainers.image.description=Modern, cross-platform terminal application for creating bootable Windows USB drives"
+      - "--label=org.opencontainers.image.licenses=Apache-2.0"
+      - "--platform=linux/arm64"
+      - "--build-arg=VERSION={{.Version}}"
+      - "--build-arg=BUILD_TIME={{.Date}}"
+      - "--build-arg=GIT_COMMIT={{.FullCommit}}"
+    goarch: arm64
+
+# Docker manifest for multi-arch images
+docker_manifests:
+  - name_template: "ghcr.io/entro314-labs/ember:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/entro314-labs/ember:{{ .Tag }}-amd64"
+      - "ghcr.io/entro314-labs/ember:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/entro314-labs/ember:v{{ .Major }}"
+    image_templates:
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}-amd64"
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}-arm64"
+  - name_template: "ghcr.io/entro314-labs/ember:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "ghcr.io/entro314-labs/ember:v{{ .Major }}.{{ .Minor }}-arm64"
+  - name_template: "ghcr.io/entro314-labs/ember:latest"
+    image_templates:
+      - "ghcr.io/entro314-labs/ember:latest-amd64"
+      - "ghcr.io/entro314-labs/ember:latest-arm64"
+
+# Package manager integrations
+brews:
+  - name: ember
+    repository:
+      owner: entro314-labs
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    url_template: "https://github.com/entro314-labs/ember/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    download_strategy: CurlDownloadStrategy
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://github.com/entro314-labs/ember"
+    description: "Modern, cross-platform terminal application for creating bootable Windows USB drives"
+    license: "Apache-2.0"
+    skip_upload: auto
+    dependencies:
+      - name: git
+    install: |
+      bin.install "ember"
+    test: |
+      system "#{bin}/ember", "--version"
+
+scoops:
+  - name: ember
+    repository:
+      owner: entro314-labs
+      name: scoop-bucket
+      branch: main
+      token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
+    url_template: "https://github.com/entro314-labs/ember/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Scoop update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://github.com/entro314-labs/ember"
+    description: "Modern, cross-platform terminal application for creating bootable Windows USB drives"
+    license: "Apache-2.0"
+    skip_upload: auto
+
+# AUR packages for Arch Linux
+aurs:
+  - name: ember-bin
+    homepage: "https://github.com/entro314-labs/ember"
+    description: "Modern, cross-platform terminal application for creating bootable Windows USB drives"
+    maintainers:
+      - "Entro314 Labs <maintainers@entro314.com>"
+    license: "Apache-2.0"
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/ember-bin.git"
+    depends:
+      - dosfstools
+      - ntfs-3g
+      - parted
+    package: |-
+      # binary
+      install -Dm755 "./ember" "${pkgdir}/usr/bin/ember"
+      
+      # license
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/ember/LICENSE"
+      
+      # documentation
+      install -Dm644 "./README.md" "${pkgdir}/usr/share/doc/ember/README.md"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    skip_upload: auto
+
+# SBOM generation
+sboms:
+  - artifacts: archive
+    documents:
+      - "{{ .ProjectName }}_{{ .Version }}_sbom.spdx.json"
+
+# Signing configuration (requires signing keys)
+signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    certificate: "${artifact}.pem"
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum
+    output: true
+
+# Docker signing
+docker_signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    args:
+      - sign
+      - "--yes"
+      - "${artifact}"
+    artifacts: manifests
+    output: true
+
+# Announcement configuration
+announce:
+  # Twitter announcement
+  twitter:
+    enabled: false
+    message_template: |
+      🚀 Ember {{ .Tag }} is out! 
+      
+      Modern Windows USB creator for macOS, Linux & Windows
+      
+      📦 Download: {{ .ReleaseURL }}
+      
+      #golang #opensource #windows #usb #bootable
+
+  # Discord announcement  
+  discord:
+    enabled: false
+    message_template: |
+      **Ember {{ .Tag }} Released!** 🚀
+      
+      Modern, cross-platform terminal application for creating bootable Windows USB drives
+      
+      **Download:** {{ .ReleaseURL }}
+      **Changelog:** Check the release notes for what's new!
+
+# Metadata
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+before:
+  hooks:
+    # Build ms-sys if available
+    - 'sh -c "if [ -d ms-sys ] && [ -f ms-sys/Makefile ]; then echo Building ms-sys submodule...; cd ms-sys && make && mkdir -p ../binaries && cp -a ./build/bin/ms-sys ../binaries/ms-sys || echo ms-sys build failed; else echo ms-sys submodule not available; fi"'
+    # Ensure we have required files
+    - 'sh -c "touch CHANGELOG.md || echo # Changelog > CHANGELOG.md"'
+    # Clean previous builds
+    - go mod tidy
+    - go mod download

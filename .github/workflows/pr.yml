@@ -1,0 +1,516 @@
+name: Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, develop]
+  pull_request_review:
+    types: [submitted]
+
+env:
+  GO_VERSION: '1.25'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  # PR information and validation
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event.pull_request.draft == false
+    outputs:
+      changed-files: ${{ steps.changes.outputs.changed-files }}
+      has-go-changes: ${{ steps.changes.outputs.go == 'true' }}
+      has-docs-changes: ${{ steps.changes.outputs.docs == 'true' }}
+      has-workflow-changes: ${{ steps.changes.outputs.workflows == 'true' }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            go:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+            docs:
+              - '**/*.md'
+              - 'docs/**'
+            workflows:
+              - '.github/workflows/**'
+            config:
+              - '.golangci.yml'
+              - 'Makefile'
+              - 'Dockerfile*'
+
+      - name: PR Summary
+        run: |
+          echo "## 📝 Pull Request Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** @${{ github.event.pull_request.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.head_ref }}\` → \`${{ github.base_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commits:** ${{ github.event.pull_request.commits }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Files changed:** ${{ github.event.pull_request.changed_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Lines added:** +${{ github.event.pull_request.additions }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Lines deleted:** -${{ github.event.pull_request.deletions }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Change Detection" >> $GITHUB_STEP_SUMMARY
+          echo "- Go code: ${{ steps.changes.outputs.go == 'true' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Documentation: ${{ steps.changes.outputs.docs == 'true' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Workflows: ${{ steps.changes.outputs.workflows == 'true' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Configuration: ${{ steps.changes.outputs.config == 'true' && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+
+  # Code quality checks
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: pr-info
+    timeout-minutes: 15
+    if: needs.pr-info.outputs.has-go-changes == 'true'
+    permissions:
+      contents: read
+      security-events: write
+      checks: write
+      pull-requests: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            ~/.cache/golangci-lint
+          key: ${{ runner.os }}-go-quality-${{ hashFiles('**/go.sum') }}-${{ hashFiles('.golangci.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-go-quality-
+
+      - name: Download dependencies
+        run: go mod download && go mod verify
+
+      - name: Check formatting
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "❌ Code is not formatted properly:"
+            gofmt -s -l .
+            echo "Run 'make fmt' to fix formatting issues"
+            exit 1
+          fi
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Install and run golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout=5m --issues-exit-code=1
+          only-new-issues: true
+
+      - name: Check for TODO/FIXME/HACK comments
+        run: |
+          TODO_COUNT=$(grep -r "TODO\|FIXME\|HACK" --include="*.go" . | wc -l)
+          if [ "$TODO_COUNT" -gt 0 ]; then
+            echo "⚠️ Found $TODO_COUNT TODO/FIXME/HACK comments:"
+            grep -rn "TODO\|FIXME\|HACK" --include="*.go" . || true
+          fi
+
+  # Comprehensive testing
+  test:
+    name: Test Suite
+    runs-on: ${{ matrix.os }}
+    needs: pr-info
+    timeout-minutes: 20
+    if: needs.pr-info.outputs.has-go-changes == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install build dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config
+
+      - name: Build ms-sys (Unix only)
+        if: matrix.os != 'windows-latest'
+        run: |
+          if [ -d "ms-sys" ]; then
+            make build-ms-sys || echo "⚠️ ms-sys build failed"
+          fi
+
+      - name: Run unit tests with coverage
+        run: |
+          go test -v -race -coverprofile=coverage-${{ matrix.os }}.out -covermode=atomic ./...
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage-${{ matrix.os }}.out
+          flags: unittests,${{ matrix.os }}
+          name: codecov-${{ matrix.os }}
+          fail_ci_if_error: false
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}
+          path: coverage-${{ matrix.os }}.out
+          retention-days: 7
+
+  # Build verification
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: pr-info
+    timeout-minutes: 10
+    if: needs.pr-info.outputs.has-go-changes == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Verify build for multiple platforms
+        run: |
+          echo "🔨 Verifying builds for multiple platforms..."
+          
+          platforms=("linux/amd64" "linux/arm64" "darwin/amd64" "darwin/arm64" "windows/amd64")
+          
+          for platform in "${platforms[@]}"; do
+            IFS='/' read -r GOOS GOARCH <<< "$platform"
+            echo "Building for $GOOS/$GOARCH..."
+            
+            GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 go build -ldflags "-s -w" -o ember-$GOOS-$GOARCH .
+            
+            if [ -f "ember-$GOOS-$GOARCH" ] || [ -f "ember-$GOOS-$GOARCH.exe" ]; then
+              echo "✅ $GOOS/$GOARCH build successful"
+            else
+              echo "❌ $GOOS/$GOARCH build failed"
+              exit 1
+            fi
+          done
+          
+          echo "🎉 All platform builds successful!"
+
+  # Security scanning for PRs
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: pr-info
+    timeout-minutes: 15
+    if: needs.pr-info.outputs.has-go-changes == 'true'
+    permissions:
+      contents: read
+      security-events: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run Gosec Security Scanner
+        run: |
+          go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+          gosec -fmt sarif -out gosec.sarif ./... || true
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec.sarif
+
+      - name: Run vulnerability check
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./... || true
+
+  # Documentation checks
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    needs: pr-info
+    timeout-minutes: 10
+    if: needs.pr-info.outputs.has-docs-changes == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check markdown formatting
+        run: |
+          npm install -g markdownlint-cli2
+          markdownlint-cli2 "**/*.md" "#node_modules" || true
+
+      - name: Check for broken links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.markdown-link-check.json'
+
+  # Performance comparison
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    needs: [pr-info, quality]
+    timeout-minutes: 15
+    if: needs.pr-info.outputs.has-go-changes == 'true' && github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      pull-requests: write
+      
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          path: pr
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run base benchmarks
+        run: |
+          cd base
+          go test -bench=. -benchmem -count=3 ./... > ../base-bench.txt || true
+
+      - name: Run PR benchmarks
+        run: |
+          cd pr
+          go test -bench=. -benchmem -count=3 ./... > ../pr-bench.txt || true
+
+      - name: Compare benchmarks
+        run: |
+          if [ -f base-bench.txt ] && [ -f pr-bench.txt ]; then
+            echo "📊 Benchmark Comparison" > benchmark-comparison.md
+            echo "" >> benchmark-comparison.md
+            echo "Base branch vs PR branch performance comparison:" >> benchmark-comparison.md
+            echo "" >> benchmark-comparison.md
+            echo '```' >> benchmark-comparison.md
+            echo "BASE:" >> benchmark-comparison.md
+            head -20 base-bench.txt >> benchmark-comparison.md
+            echo "" >> benchmark-comparison.md
+            echo "PR:" >> benchmark-comparison.md
+            head -20 pr-bench.txt >> benchmark-comparison.md
+            echo '```' >> benchmark-comparison.md
+          else
+            echo "No benchmarks found or benchmark execution failed" > benchmark-comparison.md
+          fi
+
+      - name: Comment PR with benchmark results
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            if (fs.existsSync('benchmark-comparison.md')) {
+              const benchmark = fs.readFileSync('benchmark-comparison.md', 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: benchmark
+              });
+            }
+
+  # Dependency check
+  dependencies:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    needs: pr-info
+    timeout-minutes: 10
+    if: needs.pr-info.outputs.has-go-changes == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Check for new dependencies
+        run: |
+          echo "📦 Checking for dependency changes..."
+          git fetch origin ${{ github.base_ref }}
+          
+          if git diff origin/${{ github.base_ref }} -- go.mod | grep "^+.*require"; then
+            echo "⚠️ New dependencies detected:"
+            git diff origin/${{ github.base_ref }} -- go.mod | grep "^+.*require"
+            echo "Please ensure these dependencies are necessary and from trusted sources."
+          else
+            echo "✅ No new dependencies detected"
+          fi
+
+      - name: Check dependency licenses
+        run: |
+          if command -v go-licenses >/dev/null 2>&1; then
+            go-licenses check .
+          else
+            echo "go-licenses not available, skipping license check"
+          fi
+
+  # Size impact analysis
+  size-analysis:
+    name: Binary Size Analysis
+    runs-on: ubuntu-latest
+    needs: [pr-info, build]
+    timeout-minutes: 10
+    if: needs.pr-info.outputs.has-go-changes == 'true'
+    
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          path: pr
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Build base binary
+        run: |
+          cd base
+          CGO_ENABLED=0 go build -ldflags "-s -w" -o ember-base .
+
+      - name: Build PR binary
+        run: |
+          cd pr
+          CGO_ENABLED=0 go build -ldflags "-s -w" -o ember-pr .
+
+      - name: Compare binary sizes
+        run: |
+          BASE_SIZE=$(stat -c%s base/ember-base 2>/dev/null || stat -f%z base/ember-base)
+          PR_SIZE=$(stat -c%s pr/ember-pr 2>/dev/null || stat -f%z pr/ember-pr)
+          
+          DIFF=$((PR_SIZE - BASE_SIZE))
+          PERCENT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $BASE_SIZE) * 100}")
+          
+          echo "## 📏 Binary Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | Size | Change |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Base | $(numfmt --to=iec $BASE_SIZE)B | - |" >> $GITHUB_STEP_SUMMARY
+          echo "| PR | $(numfmt --to=iec $PR_SIZE)B | ${DIFF:+$(numfmt --to=iec $DIFF)B ($PERCENT%)} |" >> $GITHUB_STEP_SUMMARY
+
+  # Final status check
+  pr-status:
+    name: PR Status Summary
+    runs-on: ubuntu-latest
+    needs: [pr-info, quality, test, build, security, docs, benchmark, dependencies, size-analysis]
+    if: always() && github.event.pull_request.draft == false
+    timeout-minutes: 5
+    
+    steps:
+      - name: PR Status Summary
+        run: |
+          echo "## 🎯 Pull Request Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.quality.result == 'success' && '✅ Passed' || needs.quality.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Tests | ${{ needs.test.result == 'success' && '✅ Passed' || needs.test.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result == 'success' && '✅ Passed' || needs.build.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result == 'success' && '✅ Passed' || needs.security.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Documentation | ${{ needs.docs.result == 'success' && '✅ Passed' || needs.docs.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Benchmarks | ${{ needs.benchmark.result == 'success' && '✅ Passed' || needs.benchmark.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependencies | ${{ needs.dependencies.result == 'success' && '✅ Passed' || needs.dependencies.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Size Analysis | ${{ needs.size-analysis.result == 'success' && '✅ Passed' || needs.size-analysis.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if all required checks passed
+          REQUIRED_CHECKS=("quality" "test" "build" "security")
+          ALL_PASSED=true
+          
+          for check in "${REQUIRED_CHECKS[@]}"; do
+            case $check in
+              "quality") result="${{ needs.quality.result }}" ;;
+              "test") result="${{ needs.test.result }}" ;;
+              "build") result="${{ needs.build.result }}" ;;
+              "security") result="${{ needs.security.result }}" ;;
+            esac
+            
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              ALL_PASSED=false
+              break
+            fi
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "$ALL_PASSED" = true ]; then
+            echo "✅ **All required checks passed! This PR is ready for review.**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Some required checks failed. Please review and fix the issues.**" >> $GITHUB_STEP_SUMMARY
+          fi

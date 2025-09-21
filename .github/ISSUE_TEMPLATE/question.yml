@@ -1,0 +1,115 @@
+name: Question / Support
+description: Ask a question or get help using Ember
+title: "[Question]: "
+labels: ["question", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reaching out! Before asking a question, please check:
+        - [README documentation](https://github.com/entro314-labs/ember#readme)
+        - [Existing discussions](https://github.com/entro314-labs/ember/discussions)
+        - [Closed issues](https://github.com/entro314-labs/ember/issues?q=is%3Aissue+is%3Aclosed)
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight Checklist
+      description: Please ensure you've completed these steps
+      options:
+        - label: I have read the README and documentation
+          required: true
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: This is not a bug report (use the bug report template instead)
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Ember Version
+      description: What version of Ember are you using?
+      placeholder: "v1.0.0 or output of ./ember --version"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      options:
+        - macOS (Intel)
+        - macOS (Apple Silicon)
+        - Linux (Ubuntu/Debian)
+        - Linux (CentOS/RHEL/Fedora)
+        - Linux (Arch)
+        - Linux (Other)
+        - Windows 10
+        - Windows 11
+        - FreeBSD
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What category does your question fall into?
+      options:
+        - Installation and Setup
+        - Usage and Commands
+        - Supported Devices
+        - Supported ISO Files
+        - Platform-specific Issues
+        - Performance and Optimization
+        - Security and Safety
+        - Troubleshooting
+        - Development and Building
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: "Please describe your question in detail..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any relevant context about what you're trying to accomplish
+      placeholder: "I'm trying to... and I want to understand..."
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What Have You Tried?
+      description: Describe what you've already attempted
+      placeholder: "I tried... but..."
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any other relevant information that might help us provide a better answer
+      placeholder: "Include any error messages, command output, or other relevant details"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Terms
+      description: By submitting this question, you agree to our terms
+      options:
+        - label: I understand that this is volunteer-maintained software
+          required: true
+        - label: I will be patient and respectful while waiting for a response
+          required: true
