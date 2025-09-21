@@ -37,32 +37,3 @@ func MakeExFAT(device string) error {
 	return nil
 }
 
-// FormatPartitionAsExFAT formats a specific partition as exFAT
-func FormatPartitionAsExFAT(partition, volumeName string) error {
-	if volumeName == "" {
-		volumeName = "WINDOWS"
-	}
-
-	cmd := exec.Command("diskutil", "eraseVolume", "ExFAT", volumeName, partition)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to format partition %s as exFAT: %w\noutput: %s", partition, err, out)
-	}
-
-	return nil
-}
-
-// FormatPartitionAsFAT32 formats a specific partition as FAT32
-func FormatPartitionAsFAT32(partition, volumeName string) error {
-	if volumeName == "" {
-		volumeName = "UEFI"
-	}
-
-	cmd := exec.Command("diskutil", "eraseVolume", "MS-DOS FAT32", volumeName, partition)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to format partition %s as FAT32: %w\noutput: %s", partition, err, out)
-	}
-
-	return nil
-}

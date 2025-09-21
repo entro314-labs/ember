@@ -26,7 +26,7 @@ type UEFINTFSSupport struct {
 
 // CreateUEFINTFSPartition creates a UEFI:NTFS support partition
 func CreateUEFINTFSPartition(device string) (*UEFINTFSSupport, error) {
-	logger.GetLogger().Info("Creating UEFI:NTFS support partition on %s", device)
+	logger.GetLogger().Info("Creating UEFI:NTFS support partition", "device", device)
 
 	// Create the UEFI:NTFS partition (512KB at the end of the device)
 	// This partition enables UEFI booting from NTFS filesystems
@@ -88,7 +88,7 @@ func createUEFINTFSPartitionGeometry(device string) error {
 // InstallBootloader writes the UEFI:NTFS image to the partition
 func (u *UEFINTFSSupport) InstallBootloader() error {
 	partitionDevice := fmt.Sprintf("%s%d", u.device, u.partNumber)
-	logger.GetLogger().Info("Installing UEFI:NTFS bootloader to %s", partitionDevice)
+	logger.GetLogger().Info("Installing UEFI:NTFS bootloader", "device", partitionDevice)
 
 	// Write the embedded UEFI:NTFS image directly to the partition
 	err := writeImageToPartition(uefiNtfsImage, partitionDevice)
@@ -99,7 +99,7 @@ func (u *UEFINTFSSupport) InstallBootloader() error {
 	// Set the partition type and flags for UEFI compatibility
 	err = u.configurePartitionAttributes()
 	if err != nil {
-		logger.GetLogger().Warn("Failed to set partition attributes: %v", err)
+		logger.GetLogger().Warn("Failed to set partition attributes", "error", err)
 		// Continue anyway, as this is not critical
 	}
 
@@ -143,7 +143,7 @@ func (u *UEFINTFSSupport) configurePartitionAttributes() error {
 	cmd := exec.Command("parted", "--script", u.device, "set", strconv.Itoa(u.partNumber), "esp", "on")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logger.GetLogger().Warn("Failed to set ESP flag: %v\nOutput: %s", err, string(output))
+		logger.GetLogger().Warn("Failed to set ESP flag", "error", err, "output", string(output))
 		// Try alternative approach with sgdisk if available
 		return u.setPartitionTypeWithSgdisk()
 	}
@@ -165,7 +165,7 @@ func (u *UEFINTFSSupport) setPartitionTypeWithSgdisk() error {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logger.GetLogger().Warn("Failed to set partition type with sgdisk: %v\nOutput: %s", err, string(output))
+		logger.GetLogger().Warn("Failed to set partition type with sgdisk", "error", err, "output", string(output))
 	}
 
 	return nil
@@ -235,10 +235,10 @@ func CheckUEFINTFSSupport() error {
 	// Check image size (should be exactly 1MB)
 	expectedSize := 1024 * 1024 // 1MB
 	if len(uefiNtfsImage) != expectedSize {
-		logger.GetLogger().Warn("UEFI:NTFS image size unexpected: got %d bytes, expected %d", len(uefiNtfsImage), expectedSize)
+		logger.GetLogger().Warn("UEFI:NTFS image size unexpected", "got", len(uefiNtfsImage), "expected", expectedSize)
 	}
 
-	logger.GetLogger().Info("UEFI:NTFS support available (image size: %d bytes)", len(uefiNtfsImage))
+	logger.GetLogger().Info("UEFI:NTFS support available", "image_size", len(uefiNtfsImage))
 	return nil
 }
 
@@ -272,7 +272,7 @@ func (u *UEFINTFSSupport) ValidateUEFINTFSPartition() error {
 		return fmt.Errorf("UEFI:NTFS partition size %d bytes is outside expected range (%d-%d)", size, minSize, maxSize)
 	}
 
-	logger.GetLogger().Info("UEFI:NTFS partition validation successful (size: %d bytes)", size)
+	logger.GetLogger().Info("UEFI:NTFS partition validation successful", "size", size)
 	return nil
 }
 
@@ -282,7 +282,7 @@ func (u *UEFINTFSSupport) CleanupUEFINTFSSupport() error {
 		partitionDevice := fmt.Sprintf("%s%d", u.device, u.partNumber)
 		cmd := exec.Command("umount", partitionDevice)
 		if err := cmd.Run(); err != nil {
-			logger.GetLogger().Warn("Failed to unmount UEFI:NTFS partition: %v", err)
+			logger.GetLogger().Warn("Failed to unmount UEFI:NTFS partition", "error", err)
 		}
 		u.mounted = false
 	}

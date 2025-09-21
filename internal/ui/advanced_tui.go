@@ -11,33 +11,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/entro314-labs/ember/internal/device"
+	"github.com/entro314-labs/ember/internal/filesystem"
 	"github.com/entro314-labs/ember/internal/iso"
 	"github.com/entro314-labs/ember/internal/types"
 )
 
-// formatBytes returns a human-readable byte size string
-func formatBytes(bytes int64) string {
-	const (
-		KB = 1024
-		MB = KB * 1024
-		GB = MB * 1024
-		TB = GB * 1024
-	)
-
-	size := float64(bytes)
-	switch {
-	case size >= TB:
-		return fmt.Sprintf("%.1f TB", size/TB)
-	case size >= GB:
-		return fmt.Sprintf("%.1f GB", size/GB)
-	case size >= MB:
-		return fmt.Sprintf("%.1f MB", size/MB)
-	case size >= KB:
-		return fmt.Sprintf("%.1f KB", size/KB)
-	default:
-		return fmt.Sprintf("%d B", bytes)
-	}
-}
 
 // AdvancedTUIModel represents the advanced TUI model
 type AdvancedTUIModel struct {
@@ -327,7 +305,7 @@ func (m *AdvancedTUIModel) analyzeSourceMedia() tea.Cmd {
 		}
 
 		// Perform source media analysis
-		analysis, err := device.AnalyzeSourceMedia(m.isoPath)
+		analysis, err := filesystem.AnalyzeSourceMedia(m.isoPath)
 		if err != nil {
 			return ErrorMsg{err: err}
 		}
@@ -539,7 +517,7 @@ func (m *AdvancedTUIModel) renderCompletion() string {
 	if m.analysis != nil {
 		details.WriteString(fmt.Sprintf("  • Filesystem: %s\n", m.analysis.RecommendedFS))
 		details.WriteString(fmt.Sprintf("  • Files copied: %d\n", m.analysis.FileCount))
-		details.WriteString(fmt.Sprintf("  • Total size: %s\n", formatBytes(m.analysis.TotalSize)))
+		details.WriteString(fmt.Sprintf("  • Total size: %s\n", types.FormatBytes(m.analysis.TotalSize)))
 	}
 
 	instructions := "\n\n🎉 Your Windows USB is ready for use!\n" +

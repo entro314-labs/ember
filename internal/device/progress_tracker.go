@@ -421,16 +421,16 @@ func (cps *ConsoleProgressSubscriber) OnProgressUpdate(update ProgressUpdate) {
 	switch update.Status {
 	case StatusRunning:
 		if update.CurrentFile != "" {
-			logger.GetLogger().Info("[%s] %.1f%% - %s", update.OperationName, update.Progress, update.CurrentFile)
+			logger.GetLogger().Info("Operation progress with file", "operation", update.OperationName, "progress", update.Progress, "file", update.CurrentFile)
 		} else {
-			logger.GetLogger().Info("[%s] %.1f%% - %s", update.OperationName, update.Progress, update.Message)
+			logger.GetLogger().Info("Operation progress", "operation", update.OperationName, "progress", update.Progress, "message", update.Message)
 		}
 	case StatusCompleted:
-		logger.GetLogger().Info("[%s] ✓ Completed", update.OperationName)
+		logger.GetLogger().Info("Operation completed", "operation", update.OperationName)
 	case StatusFailed:
-		logger.GetLogger().Error("[%s] ✗ Failed: %v", update.OperationName, update.Error)
+		logger.GetLogger().Error("Operation failed", "operation", update.OperationName, "error", update.Error)
 	case StatusCanceled:
-		logger.GetLogger().Warn("[%s] ⚠ Canceled", update.OperationName)
+		logger.GetLogger().Warn("Operation canceled", "operation", update.OperationName)
 	}
 }
 

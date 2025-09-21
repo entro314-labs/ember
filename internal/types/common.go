@@ -102,8 +102,8 @@ type FilesystemAnalysis struct {
 // FileProgressCallback defines the signature for progress reporting during file operations
 type FileProgressCallback func(current, total int64, currentFile string)
 
-// GetSizeString returns a human-readable size string for the ISO
-func (iso *ISOInfo) GetSizeString() string {
+// FormatBytes returns a human-readable size string for any byte count
+func FormatBytes(bytes int64) string {
 	const (
 		KB = 1024
 		MB = KB * 1024
@@ -111,7 +111,7 @@ func (iso *ISOInfo) GetSizeString() string {
 		TB = GB * 1024
 	)
 
-	size := float64(iso.Size)
+	size := float64(bytes)
 	switch {
 	case size >= TB:
 		return fmt.Sprintf("%.1f TB", size/TB)
@@ -122,8 +122,13 @@ func (iso *ISOInfo) GetSizeString() string {
 	case size >= KB:
 		return fmt.Sprintf("%.1f KB", size/KB)
 	default:
-		return fmt.Sprintf("%.0f B", size)
+		return fmt.Sprintf("%d B", bytes)
 	}
+}
+
+// GetSizeString returns a human-readable size string for the ISO
+func (iso *ISOInfo) GetSizeString() string {
+	return FormatBytes(iso.Size)
 }
 
 // DiskUtilDevice methods
@@ -143,26 +148,7 @@ func (d *DiskUtilDevice) GetDisplayName() string {
 
 // GetSizeString returns a human-readable size string
 func (d *DiskUtilDevice) GetSizeString() string {
-	const (
-		KB = 1024
-		MB = KB * 1024
-		GB = MB * 1024
-		TB = GB * 1024
-	)
-
-	size := float64(d.Size)
-	switch {
-	case size >= TB:
-		return fmt.Sprintf("%.1f TB", size/TB)
-	case size >= GB:
-		return fmt.Sprintf("%.1f GB", size/GB)
-	case size >= MB:
-		return fmt.Sprintf("%.1f MB", size/MB)
-	case size >= KB:
-		return fmt.Sprintf("%.1f KB", size/KB)
-	default:
-		return fmt.Sprintf("%.0f B", size)
-	}
+	return FormatBytes(d.Size)
 }
 
 // GetDeviceDescription returns a detailed description of the device

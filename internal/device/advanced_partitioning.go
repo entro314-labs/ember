@@ -153,7 +153,7 @@ func (pm *AdvancedPartitionManager) verifyDeviceIsWiped() error {
 
 // CreatePartitionTable creates a new partition table with proper alignment
 func (pm *AdvancedPartitionManager) CreatePartitionTable(tableType string) error {
-	logger.GetLogger().Info("Creating %s partition table on %s", tableType, pm.device)
+	logger.GetLogger().Info("Creating partition table", "type", tableType, "device", pm.device)
 
 	var partedTableType string
 	switch strings.ToLower(tableType) {
@@ -186,8 +186,12 @@ func (pm *AdvancedPartitionManager) CreatePartitionTable(tableType string) error
 
 // CreatePartition creates a partition with advanced options
 func (pm *AdvancedPartitionManager) CreatePartition(config *PartitionConfig) error {
-	logger.GetLogger().Info("Creating partition %d: %s %s from %s to %s",
-		config.Number, config.Type, config.Filesystem, config.Start, config.End)
+	logger.GetLogger().Info("Creating partition",
+		"number", config.Number,
+		"type", config.Type,
+		"filesystem", config.Filesystem,
+		"start", config.Start,
+		"end", config.End)
 
 	// Validate configuration
 	err := pm.validatePartitionConfig(config)
@@ -231,7 +235,7 @@ func (pm *AdvancedPartitionManager) CreatePartition(config *PartitionConfig) err
 	if len(config.Flags) > 0 {
 		err = pm.setPartitionFlags(config.Number, config.Flags)
 		if err != nil {
-			logger.GetLogger().Warn("Failed to set partition flags: %v", err)
+			logger.GetLogger().Warn("Failed to set partition flags", "error", err)
 			// Continue anyway, flags are not always critical
 		}
 	}
@@ -244,7 +248,7 @@ func (pm *AdvancedPartitionManager) CreatePartition(config *PartitionConfig) err
 		}
 	}
 
-	logger.GetLogger().Info("Partition %d created successfully", config.Number)
+	logger.GetLogger().Info("Partition created successfully", "number", config.Number)
 	return nil
 }
 
@@ -277,7 +281,7 @@ func (pm *AdvancedPartitionManager) validatePartitionConfig(config *PartitionCon
 // setPartitionFlags sets flags on a partition (boot, esp, etc.)
 func (pm *AdvancedPartitionManager) setPartitionFlags(partNumber int, flags []string) error {
 	for _, flag := range flags {
-		logger.GetLogger().Info("Setting flag '%s' on partition %d", flag, partNumber)
+		logger.GetLogger().Info("Setting partition flag", "flag", flag, "partition", partNumber)
 
 		cmd := exec.Command("parted", "--script", pm.device, "set",
 			strconv.Itoa(partNumber), flag, "on")
@@ -293,7 +297,7 @@ func (pm *AdvancedPartitionManager) setPartitionFlags(partNumber int, flags []st
 // FormatPartition formats a partition with the specified filesystem
 func (pm *AdvancedPartitionManager) FormatPartition(partNumber int, fsType, label string) error {
 	partitionDevice := fmt.Sprintf("%s%d", pm.device, partNumber)
-	logger.GetLogger().Info("Formatting partition %s as %s with label '%s'", partitionDevice, fsType, label)
+	logger.GetLogger().Info("Formatting partition", "device", partitionDevice, "filesystem", fsType, "label", label)
 
 	var cmd *exec.Cmd
 	switch strings.ToLower(fsType) {
@@ -396,13 +400,13 @@ func (pm *AdvancedPartitionManager) verifyPartitionCreation(partNumber int) erro
 
 // makeSystemRealizePartitionTableChanged forces the system to re-read partition table
 func makeSystemRealizePartitionTableChanged(device string) error {
-	logger.GetLogger().Info("Refreshing partition table for %s", device)
+	logger.GetLogger().Info("Refreshing partition table", "device", device)
 
 	// Use blockdev to re-read partition table
 	cmd := exec.Command("blockdev", "--rereadpt", device)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		logger.GetLogger().Warn("blockdev --rereadpt failed: %v\nOutput: %s", err, string(output))
+		logger.GetLogger().Warn("blockdev --rereadpt failed", "error", err, "output", string(output))
 		// Continue anyway, partprobe might work
 	}
 
@@ -457,7 +461,7 @@ func (pm *AdvancedPartitionManager) GetPartitionInfo() (map[string]interface{}, 
 	partedCmd := exec.Command("parted", "--script", pm.device, "print")
 	partedOutput, err := partedCmd.Output()
 	if err != nil {
-		logger.GetLogger().Warn("Failed to get parted output: %v", err)
+		logger.GetLogger().Warn("Failed to get parted output", "error", err)
 	}
 
 	return map[string]interface{}{

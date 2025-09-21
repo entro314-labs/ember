@@ -37,10 +37,10 @@ func (w *Windows7UEFIWorkaround) Analyze() error {
 	if _, err := os.Stat(cversionPath); err == nil {
 		version, err := w.detectWindowsVersionFromCVersion(cversionPath)
 		if err != nil {
-			logger.GetLogger().Warn("Failed to detect Windows version: %v", err)
+			logger.GetLogger().Warn("Failed to detect Windows version", "error", err)
 		} else {
 			w.detectedVersion = version
-			logger.GetLogger().Info("Detected Windows version: %s", version)
+			logger.GetLogger().Info("Detected Windows version", "version", version)
 		}
 	}
 
@@ -102,7 +102,7 @@ func (w *Windows7UEFIWorkaround) Apply() error {
 	// Step 3: Copy additional EFI files if available
 	err = w.copyAdditionalEFIFiles()
 	if err != nil {
-		logger.GetLogger().Warn("Failed to copy additional EFI files: %v", err)
+		logger.GetLogger().Warn("Failed to copy additional EFI files", "error", err)
 		// Continue anyway, main bootloader is more important
 	}
 
@@ -159,7 +159,7 @@ func (w *Windows7UEFIWorkaround) hasCompleteEFIStructure() bool {
 
 	for _, path := range efiPaths {
 		if _, err := os.Stat(path); err == nil {
-			logger.GetLogger().Info("Found existing EFI bootloader: %s", path)
+			logger.GetLogger().Info("Found existing EFI bootloader", "path", path)
 			return true
 		}
 	}
@@ -182,7 +182,7 @@ func (w *Windows7UEFIWorkaround) createEFIDirectoryStructure() error {
 		if err != nil {
 			return fmt.Errorf("failed to create directory %s: %w", dir, err)
 		}
-		logger.GetLogger().Debug("Created EFI directory: %s", dir)
+		logger.GetLogger().Debug("Created EFI directory", "path", dir)
 	}
 
 	return nil
@@ -228,13 +228,13 @@ func (w *Windows7UEFIWorkaround) extractBootloaderFromWIM() error {
 		return fmt.Errorf("extracted bootloader is empty")
 	}
 
-	logger.GetLogger().Info("Successfully extracted EFI bootloader (%d bytes) to %s", len(output), targetBootloader)
+	logger.GetLogger().Info("Successfully extracted EFI bootloader", "size", len(output), "target", targetBootloader)
 
 	// Also copy as the Microsoft bootloader name for compatibility
 	microsoftBootloader := filepath.Join(w.targetPath, "efi", "microsoft", "boot", "bootmgfw.efi")
 	err = os.WriteFile(microsoftBootloader, output, 0644)
 	if err != nil {
-		logger.GetLogger().Warn("Failed to copy bootloader to Microsoft path: %v", err)
+		logger.GetLogger().Warn("Failed to copy bootloader to Microsoft path", "error", err)
 	}
 
 	return nil

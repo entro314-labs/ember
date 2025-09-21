@@ -421,7 +421,7 @@ func DiscoverWindowsISOs() ([]*types.ISOInfo, error) {
 	for sourceName, paths := range scanLocations {
 		for _, scanPath := range paths {
 			if _, err := os.Stat(scanPath); os.IsNotExist(err) {
-				log.Debug("Scan location does not exist: %s", scanPath)
+				log.Debug("Scan location does not exist", "path", scanPath)
 				continue
 			}
 
@@ -500,11 +500,11 @@ func scanDirectoryForISOs(dirPath, sourceName string) ([]*types.ISOInfo, error) 
 		if !info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".iso") {
 			// Quick size check - Windows ISOs are typically 2GB+
 			if info.Size() < 1*1024*1024*1024 { // Less than 1GB, probably not Windows
-				logger.GetLogger().Debug("Skipping small ISO", "path", path, "size", formatBytes(info.Size()))
+				logger.GetLogger().Debug("Skipping small ISO", "path", path, "size", types.FormatBytes(info.Size()))
 				return nil
 			}
 
-			logger.GetLogger().Debug("Found potential Windows ISO", "path", path, "size", formatBytes(info.Size()))
+			logger.GetLogger().Debug("Found potential Windows ISO", "path", path, "size", types.FormatBytes(info.Size()))
 
 			// Create ISOInfo with basic information
 			isoInfo := &types.ISOInfo{
@@ -650,29 +650,6 @@ func DetectDragAndDrop(args []string) (*types.ISOInfo, error) {
 	return nil, fmt.Errorf("no ISO files found in arguments")
 }
 
-// formatBytes returns a human-readable byte size string
-func formatBytes(bytes int64) string {
-	const (
-		KB = 1024
-		MB = KB * 1024
-		GB = MB * 1024
-		TB = GB * 1024
-	)
-
-	size := float64(bytes)
-	switch {
-	case size >= TB:
-		return fmt.Sprintf("%.1f TB", size/TB)
-	case size >= GB:
-		return fmt.Sprintf("%.1f GB", size/GB)
-	case size >= MB:
-		return fmt.Sprintf("%.1f MB", size/MB)
-	case size >= KB:
-		return fmt.Sprintf("%.1f KB", size/KB)
-	default:
-		return fmt.Sprintf("%d B", bytes)
-	}
-}
 
 // determineOptimalFilesystem determines the best filesystem for the given analysis
 func determineOptimalFilesystem(analysis *types.FilesystemAnalysis) types.FilesystemType {

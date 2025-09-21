@@ -13,43 +13,7 @@ import (
 	"github.com/entro314-labs/ember/internal/types"
 )
 
-// Placeholder functions for missing dependencies
 
-// AnalyzeSourceMedia analyzes the source media and returns filesystem analysis
-func AnalyzeSourceMedia(sourcePath string) (*types.FilesystemAnalysis, error) {
-	// Use the complete implementation from filesystem package
-	return filesystem.AnalyzeSourceMedia(sourcePath)
-}
-
-// CopyWithProgress copies files with progress reporting
-func CopyWithProgress(source, dest string, progressCallback types.FileProgressCallback) error {
-	// Use the complete implementation from filesystem package
-	return filesystem.CopyWithProgress(source, dest, progressCallback)
-}
-
-// formatBytes returns a human-readable byte size string
-func formatBytes(bytes int64) string {
-	const (
-		KB = 1024
-		MB = KB * 1024
-		GB = MB * 1024
-		TB = GB * 1024
-	)
-
-	size := float64(bytes)
-	switch {
-	case size >= TB:
-		return fmt.Sprintf("%.1f TB", size/TB)
-	case size >= GB:
-		return fmt.Sprintf("%.1f GB", size/GB)
-	case size >= MB:
-		return fmt.Sprintf("%.1f MB", size/MB)
-	case size >= KB:
-		return fmt.Sprintf("%.1f KB", size/KB)
-	default:
-		return fmt.Sprintf("%d B", bytes)
-	}
-}
 
 // AdvancedUSBCreator orchestrates the advanced Windows USB creation process
 type AdvancedUSBCreator struct {
@@ -92,9 +56,9 @@ func NewAdvancedUSBCreator() *AdvancedUSBCreator {
 
 // CreateAdvancedWindowsUSB performs the complete advanced Windows USB creation process
 func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationConfig) error {
-	logger.GetLogger().Info("Starting advanced Windows USB creation process...")
-	logger.GetLogger().Info("Source: %s", config.SourcePath)
-	logger.GetLogger().Info("Target: %s", config.TargetDevice)
+	logger.GetLogger().Info("Starting advanced Windows USB creation process")
+	logger.GetLogger().Info("Source", "path", config.SourcePath)
+	logger.GetLogger().Info("Target", "device", config.TargetDevice)
 
 	// Step 1: Dependency checking and recovery
 	err := creator.progressTracker.TrackOperation("dependency_check", "Checking system dependencies", func() error {
@@ -119,7 +83,7 @@ func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationC
 	var analysis *types.FilesystemAnalysis
 	err = creator.progressTracker.TrackOperation("source_analysis", "Analyzing source media", func() error {
 		var analysisErr error
-		analysis, analysisErr = AnalyzeSourceMedia(config.SourcePath)
+		analysis, analysisErr = filesystem.AnalyzeSourceMedia(config.SourcePath)
 		return analysisErr
 	})
 	if err != nil {
@@ -140,7 +104,7 @@ func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationC
 
 	// Apply creation options to analysis
 	if creationOptions.UserOverride {
-		logger.GetLogger().Info("Filesystem selection overridden by user preference: %s -> %s", analysis.RecommendedFS, creationOptions.Type)
+		logger.GetLogger().Info("Filesystem selection overridden by user preference", "from", analysis.RecommendedFS, "to", creationOptions.Type)
 		analysis.RecommendedFS = creationOptions.Type
 		analysis.RequiresUEFI_NTFS = creationOptions.RequiresNTFS
 	}
@@ -184,7 +148,7 @@ func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationC
 	// Step 7: Copy files with progress tracking
 	err = creator.progressTracker.TrackOperation("file_copy", "Copying Windows files", func() error {
 		callback := creator.progressTracker.FileProgressCallback("file_copy")
-		return CopyWithProgress(config.SourcePath, targetMountpoint, callback)
+		return filesystem.CopyWithProgress(config.SourcePath, targetMountpoint, callback)
 	})
 	if err != nil {
 		return fmt.Errorf("file copying failed: %w", err)
@@ -202,7 +166,7 @@ func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationC
 			return creator.windows7Workaround.Apply()
 		})
 		if err != nil {
-			logger.GetLogger().Warn("Windows 7 UEFI workaround failed (non-critical): %v", err)
+			logger.GetLogger().Warn("Windows 7 UEFI workaround failed (non-critical)", "error", err)
 			// Continue anyway, as this is not always critical
 		}
 	}
@@ -213,7 +177,7 @@ func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationC
 			return creator.installLegacyBootloader(targetMountpoint, config.TargetDevice)
 		})
 		if err != nil {
-			logger.GetLogger().Warn("Legacy bootloader installation failed (non-critical): %v", err)
+			logger.GetLogger().Warn("Legacy bootloader installation failed (non-critical)", "error", err)
 			// Continue anyway, UEFI might still work
 		}
 	}
@@ -223,7 +187,7 @@ func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationC
 		return creator.performFinalVerification(analysis, targetMountpoint, config.TargetDevice)
 	})
 	if err != nil {
-		logger.GetLogger().Warn("Final verification encountered issues: %v", err)
+		logger.GetLogger().Warn("Final verification encountered issues", "error", err)
 		// Continue anyway, USB might still be functional
 	}
 
@@ -235,23 +199,23 @@ func (creator *AdvancedUSBCreator) CreateAdvancedWindowsUSB(config *USBCreationC
 
 // displayAnalysisResults shows the source media analysis results
 func (creator *AdvancedUSBCreator) displayAnalysisResults(analysis *types.FilesystemAnalysis) {
-	logger.GetLogger().Info("=== Source Media Analysis ===")
-	logger.GetLogger().Info("Files: %d", analysis.FileCount)
-	logger.GetLogger().Info("Total size: %s", formatBytes(analysis.TotalSize))
-	logger.GetLogger().Info("Largest file: %s", formatBytes(analysis.MaxFileSize))
-	logger.GetLogger().Info("Recommended filesystem: %s", analysis.RecommendedFS)
+	logger.GetLogger().Info("Source Media Analysis")
+	logger.GetLogger().Info("Files", "count", analysis.FileCount)
+	logger.GetLogger().Info("Total size", "bytes", types.FormatBytes(analysis.TotalSize))
+	logger.GetLogger().Info("Largest file", "bytes", types.FormatBytes(analysis.MaxFileSize))
+	logger.GetLogger().Info("Recommended filesystem", "type", analysis.RecommendedFS)
 
 	if analysis.WindowsVersion != "" {
-		logger.GetLogger().Info("Detected version: %s", analysis.WindowsVersion)
+		logger.GetLogger().Info("Detected version", "version", analysis.WindowsVersion)
 	}
 
 	if len(analysis.LargeFiles) > 0 {
-		logger.GetLogger().Warn("Large files detected (>4GB): %d files", len(analysis.LargeFiles))
+		logger.GetLogger().Warn("Large files detected (>4GB)", "count", len(analysis.LargeFiles))
 		for i, file := range analysis.LargeFiles {
 			if i < 5 { // Show first 5
-				logger.GetLogger().Warn("  - %s", file)
+				logger.GetLogger().Warn("Large file", "path", file)
 			} else if i == 5 {
-				logger.GetLogger().Warn("  - ... and %d more", len(analysis.LargeFiles)-5)
+				logger.GetLogger().Warn("Additional large files", "count", len(analysis.LargeFiles)-5)
 				break
 			}
 		}
@@ -262,7 +226,7 @@ func (creator *AdvancedUSBCreator) displayAnalysisResults(analysis *types.Filesy
 	}
 
 	if len(analysis.RequiresWorkarounds) > 0 {
-		logger.GetLogger().Info("Required workarounds: %v", analysis.RequiresWorkarounds)
+		logger.GetLogger().Info("Required workarounds", "list", analysis.RequiresWorkarounds)
 	}
 
 	logger.GetLogger().Info("=== End Analysis ===")
@@ -288,7 +252,7 @@ func (creator *AdvancedUSBCreator) mountTargetFilesystem(device string) (string,
 		return "", fmt.Errorf("mount failed: %w\nOutput: %s", err, string(output))
 	}
 
-	logger.GetLogger().Info("Mounted %s at %s", partitionDevice, mountpoint)
+	logger.GetLogger().Info("Mounted filesystem", "device", partitionDevice, "mountpoint", mountpoint)
 	return mountpoint, nil
 }
 
@@ -301,9 +265,9 @@ func (creator *AdvancedUSBCreator) unmountFilesystem(mountpoint string) {
 	cmd := exec.Command("umount", mountpoint)
 	err := cmd.Run()
 	if err != nil {
-		logger.GetLogger().Warn("Failed to unmount %s: %v", mountpoint, err)
+		logger.GetLogger().Warn("Failed to unmount filesystem", "mountpoint", mountpoint, "error", err)
 	} else {
-		logger.GetLogger().Info("Unmounted %s", mountpoint)
+		logger.GetLogger().Info("Unmounted filesystem", "mountpoint", mountpoint)
 	}
 
 	// Remove mountpoint directory
@@ -325,7 +289,7 @@ func (creator *AdvancedUSBCreator) installLegacyBootloader(mountpoint, device st
 		return fmt.Errorf("grub-install not found - legacy BIOS support unavailable")
 	}
 
-	logger.GetLogger().Info("Installing GRUB bootloader using %s", grubCmd)
+	logger.GetLogger().Info("Installing GRUB bootloader", "command", grubCmd)
 
 	// Install GRUB
 	cmd := exec.Command(grubCmd,
@@ -407,10 +371,10 @@ func (creator *AdvancedUSBCreator) performFinalVerification(analysis *types.File
 
 // displayCompletionSummary shows a summary of what was created
 func (creator *AdvancedUSBCreator) displayCompletionSummary(analysis *types.FilesystemAnalysis, config *USBCreationConfig) {
-	logger.GetLogger().Info("=== Creation Summary ===")
-	logger.GetLogger().Info("Target device: %s", config.TargetDevice)
-	logger.GetLogger().Info("Filesystem: %s", analysis.RecommendedFS)
-	logger.GetLogger().Info("Label: %s", config.Label)
+	logger.GetLogger().Info("Creation Summary")
+	logger.GetLogger().Info("Target device", "device", config.TargetDevice)
+	logger.GetLogger().Info("Filesystem", "type", analysis.RecommendedFS)
+	logger.GetLogger().Info("Label", "name", config.Label)
 
 	if analysis.RequiresUEFI_NTFS {
 		logger.GetLogger().Info("✓ UEFI:NTFS support enabled")
@@ -429,11 +393,11 @@ func (creator *AdvancedUSBCreator) displayCompletionSummary(analysis *types.File
 	}
 
 	if len(capabilities) > 0 {
-		logger.GetLogger().Info("Boot capabilities: %s", strings.Join(capabilities, ", "))
+		logger.GetLogger().Info("Boot capabilities", "list", strings.Join(capabilities, ", "))
 	}
 
-	logger.GetLogger().Info("Files copied: %d", analysis.FileCount)
-	logger.GetLogger().Info("Total size: %s", formatBytes(analysis.TotalSize))
+	logger.GetLogger().Info("Files copied", "count", analysis.FileCount)
+	logger.GetLogger().Info("Total size", "bytes", types.FormatBytes(analysis.TotalSize))
 
 	logger.GetLogger().Info("=== USB Ready for Use ===")
 	logger.GetLogger().Info("The Windows USB drive is now ready for installation.")

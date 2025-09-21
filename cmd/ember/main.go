@@ -523,29 +523,6 @@ func extractISOToDevice(isoUdf *udf.Udf, targetDevice *types.DiskUtilDevice) err
 	return nil
 }
 
-// formatBytes returns a human-readable byte size string
-func formatBytes(bytes int64) string {
-	const (
-		KB = 1024
-		MB = KB * 1024
-		GB = MB * 1024
-		TB = GB * 1024
-	)
-
-	size := float64(bytes)
-	switch {
-	case size >= TB:
-		return fmt.Sprintf("%.1f TB", size/TB)
-	case size >= GB:
-		return fmt.Sprintf("%.1f GB", size/GB)
-	case size >= MB:
-		return fmt.Sprintf("%.1f MB", size/MB)
-	case size >= KB:
-		return fmt.Sprintf("%.1f KB", size/KB)
-	default:
-		return fmt.Sprintf("%d B", bytes)
-	}
-}
 
 // GetVersion returns the application version
 func GetVersion() string {
@@ -626,8 +603,8 @@ func runAnalyzeOnly() {
 	fmt.Printf("=== Source Media Analysis ===\n")
 	fmt.Printf("ISO Path: %s\n", validator.SanitizeForLogging(*isoPath))
 	fmt.Printf("Files: %d\n", analysis.FileCount)
-	fmt.Printf("Total Size: %s\n", formatBytes(analysis.TotalSize))
-	fmt.Printf("Largest File: %s\n", formatBytes(analysis.MaxFileSize))
+	fmt.Printf("Total Size: %s\n", types.FormatBytes(analysis.TotalSize))
+	fmt.Printf("Largest File: %s\n", types.FormatBytes(analysis.MaxFileSize))
 	fmt.Printf("Recommended Filesystem: %s\n", analysis.RecommendedFS)
 
 	if analysis.WindowsVersion != "" {

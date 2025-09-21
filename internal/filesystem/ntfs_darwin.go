@@ -45,14 +45,3 @@ func MakeNTFS(device string) error {
 	return nil
 }
 
-// Alternative method using diskutil (creates NTFS but read-only on macOS)
-func MakeNTFSReadOnly(device string) error {
-	// This creates an NTFS volume but it will be read-only on macOS
-	cmd := exec.Command("diskutil", "eraseVolume", "NTFS", "WINDOWS", device)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to create NTFS filesystem on %s: %w\noutput: %s", device, err, out)
-	}
-
-	return nil
-}

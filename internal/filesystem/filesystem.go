@@ -62,7 +62,7 @@ func AnalyzeSourceMedia(sourcePath string) (*FilesystemAnalysis, error) {
 		if info.Size() > FAT32MaxFileSize {
 			relPath, _ := filepath.Rel(sourcePath, path)
 			analysis.LargeFiles = append(analysis.LargeFiles, relPath)
-			log.Warn("Large file detected", "file", relPath, "size", formatBytes(info.Size()))
+			log.Warn("Large file detected", "file", relPath, "size", types.FormatBytes(info.Size()))
 		}
 
 		// Check for specific Windows files
@@ -73,7 +73,7 @@ func AnalyzeSourceMedia(sourcePath string) (*FilesystemAnalysis, error) {
 			if fileName == "install.wim" {
 				analysis.HasInstallWIM = true
 				analysis.InstallWimSize = info.Size()
-				log.Info("install.wim detected", "size", formatBytes(info.Size()))
+				log.Info("install.wim detected", "size", types.FormatBytes(info.Size()))
 			}
 		case fileName == "bootmgr.efi":
 			// Windows 8+ with EFI support
@@ -100,7 +100,7 @@ func AnalyzeSourceMedia(sourcePath string) (*FilesystemAnalysis, error) {
 	// Check for required workarounds
 	analysis.RequiresWorkarounds = determineRequiredWorkarounds(analysis)
 
-	log.Info("Analysis complete", "files", analysis.FileCount, "total_size", formatBytes(analysis.TotalSize), "recommended_fs", analysis.RecommendedFS)
+	log.Info("Analysis complete", "files", analysis.FileCount, "total_size", types.FormatBytes(analysis.TotalSize), "recommended_fs", analysis.RecommendedFS)
 
 	return analysis, nil
 }
@@ -236,20 +236,6 @@ func isModernWindows(version string) bool {
 		   strings.Contains(lower, "windows server 2019") ||
 		   strings.Contains(lower, "windows server 2022") ||
 		   strings.Contains(lower, "windows server 2025")
-}
-
-// formatBytes converts bytes to human-readable format
-func formatBytes(bytes int64) string {
-	const unit = 1024
-	if bytes < unit {
-		return fmt.Sprintf("%d B", bytes)
-	}
-	div, exp := int64(unit), 0
-	for n := bytes / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
 
 // UserPreferences contains user's preferred settings

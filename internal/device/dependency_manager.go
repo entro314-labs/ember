@@ -256,10 +256,10 @@ func (dm *DependencyManager) checkSystemCapabilities() error {
 	// Check UEFI support
 	dm.systemCapability.SupportsUEFI = dm.checkUEFISupport()
 
-	logger.GetLogger().Info("System capabilities: Platform=%s, Admin=%v, UEFI=%v",
-		dm.systemCapability.Platform,
-		dm.systemCapability.HasAdminRights,
-		dm.systemCapability.SupportsUEFI)
+	logger.GetLogger().Info("System capabilities",
+		"platform", dm.systemCapability.Platform,
+		"admin", dm.systemCapability.HasAdminRights,
+		"uefi", dm.systemCapability.SupportsUEFI)
 
 	return nil
 }
@@ -308,15 +308,15 @@ func (dm *DependencyManager) checkRequiredTools() error {
 			if path, err := exec.LookPath(cmd); err == nil {
 				found = true
 				foundCommand = cmd
-				logger.GetLogger().Debug("Found %s: %s at %s", name, cmd, path)
+				logger.GetLogger().Debug("Found required tool", "name", name, "command", cmd, "path", path)
 				break
 			}
 		}
 
 		if !found {
 			dm.missingRequired = append(dm.missingRequired, name)
-			logger.GetLogger().Error("Missing required tool: %s (%s)", name, req.Purpose)
-			logger.GetLogger().Error("Installation: %s", req.Installation)
+			logger.GetLogger().Error("Missing required tool", "name", name, "purpose", req.Purpose)
+			logger.GetLogger().Error("Installation instructions", "steps", req.Installation)
 		} else {
 			// Test the tool works
 			if err := dm.testTool(foundCommand, req); err != nil {
@@ -340,15 +340,15 @@ func (dm *DependencyManager) checkOptionalTools() {
 			if path, err := exec.LookPath(cmd); err == nil {
 				found = true
 				foundCommand = cmd
-				logger.GetLogger().Debug("Found optional tool %s: %s at %s", name, cmd, path)
+				logger.GetLogger().Debug("Found optional tool", "name", name, "command", cmd, "path", path)
 				break
 			}
 		}
 
 		if !found {
 			dm.missingOptional = append(dm.missingOptional, name)
-			logger.GetLogger().Warn("Missing optional tool: %s (%s)", name, req.Purpose)
-			logger.GetLogger().Warn("Installation: %s", req.Installation)
+			logger.GetLogger().Warn("Missing optional tool", "name", name, "purpose", req.Purpose)
+			logger.GetLogger().Warn("Installation instructions", "steps", req.Installation)
 		} else {
 			// Test the tool works
 			if err := dm.testTool(foundCommand, req); err != nil {
@@ -410,25 +410,25 @@ func (dm *DependencyManager) runTestCommand(cmd *exec.Cmd, timeout time.Duration
 
 // generateDependencyReport creates a summary report
 func (dm *DependencyManager) generateDependencyReport() {
-	logger.GetLogger().Info("=== Dependency Check Summary ===")
-	logger.GetLogger().Info("Platform: %s", dm.systemCapability.Platform)
-	logger.GetLogger().Info("Admin Rights: %v", dm.systemCapability.HasAdminRights)
-	logger.GetLogger().Info("UEFI Support: %v", dm.systemCapability.SupportsUEFI)
+	logger.GetLogger().Info("Dependency Check Summary")
+	logger.GetLogger().Info("Platform", "name", dm.systemCapability.Platform)
+	logger.GetLogger().Info("Admin Rights", "enabled", dm.systemCapability.HasAdminRights)
+	logger.GetLogger().Info("UEFI Support", "enabled", dm.systemCapability.SupportsUEFI)
 
 	totalRequired := len(dm.requiredTools)
 	foundRequired := totalRequired - len(dm.missingRequired)
-	logger.GetLogger().Info("Required Tools: %d/%d found", foundRequired, totalRequired)
+	logger.GetLogger().Info("Required Tools", "found", foundRequired, "total", totalRequired)
 
 	if len(dm.missingRequired) > 0 {
-		logger.GetLogger().Error("Missing required tools: %v", dm.missingRequired)
+		logger.GetLogger().Error("Missing required tools", "list", dm.missingRequired)
 	}
 
 	totalOptional := len(dm.optionalTools)
 	foundOptional := totalOptional - len(dm.missingOptional)
-	logger.GetLogger().Info("Optional Tools: %d/%d found", foundOptional, totalOptional)
+	logger.GetLogger().Info("Optional Tools", "found", foundOptional, "total", totalOptional)
 
 	if len(dm.missingOptional) > 0 {
-		logger.GetLogger().Warn("Missing optional tools: %v", dm.missingOptional)
+		logger.GetLogger().Warn("Missing optional tools", "list", dm.missingOptional)
 	}
 
 	logger.GetLogger().Info("=== End Summary ===")
@@ -477,7 +477,7 @@ func (dm *DependencyManager) checkLegacyCompatibilityWarnings() {
 		logger.GetLogger().Info("✅ Linux: Experimental support for Windows USB creation")
 		logger.GetLogger().Warn("💡 Linux users: Consider using WoeUSB for proven Windows USB creation")
 	default:
-		logger.GetLogger().Warn("⚠️  UNSUPPORTED PLATFORM: %s", dm.systemCapability.Platform)
+		logger.GetLogger().Warn("Unsupported platform", "platform", dm.systemCapability.Platform)
 		logger.GetLogger().Warn("   • Windows USB creation not tested on this platform")
 		logger.GetLogger().Warn("   • Results may vary or fail completely")
 	}
@@ -608,11 +608,11 @@ func (dm *DependencyManager) recoverMacOSDependencies() error {
 	packages = removeDuplicates(packages)
 
 	for _, pkg := range packages {
-		logger.GetLogger().Info("Installing %s...", pkg)
+		logger.GetLogger().Info("Installing package", "name", pkg)
 		cmd := exec.Command("brew", "install", pkg)
 		err := cmd.Run()
 		if err != nil {
-			logger.GetLogger().Warn("Failed to install %s: %v", pkg, err)
+			logger.GetLogger().Warn("Failed to install package", "name", pkg, "error", err)
 		}
 	}
 
@@ -641,7 +641,7 @@ func (dm *DependencyManager) recoverLinuxDependencies() error {
 		return fmt.Errorf("no supported package manager found")
 	}
 
-	logger.GetLogger().Info("Using %s to install missing dependencies...", packageManager)
+	logger.GetLogger().Info("Using package manager to install missing dependencies", "manager", packageManager)
 
 	packages := []string{}
 
@@ -692,7 +692,7 @@ func (dm *DependencyManager) recoverLinuxDependencies() error {
 	packages = removeDuplicates(packages)
 
 	cmd := append(installCmd, packages...)
-	logger.GetLogger().Info("Running: %s", strings.Join(cmd, " "))
+	logger.GetLogger().Info("Running command", "command", strings.Join(cmd, " "))
 
 	execCmd := exec.Command(cmd[0], cmd[1:]...)
 	err := execCmd.Run()
