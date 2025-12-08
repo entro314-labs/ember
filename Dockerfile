@@ -36,7 +36,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 RUN ./ember --version
 
 # Runtime stage
-FROM alpine:3.20
+FROM alpine:3.23
 
 # Set metadata labels
 LABEL org.opencontainers.image.title="Ember"
