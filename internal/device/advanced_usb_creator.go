@@ -13,15 +13,13 @@ import (
 	"github.com/entro314-labs/ember/internal/types"
 )
 
-
-
 // AdvancedUSBCreator orchestrates the advanced Windows USB creation process
 type AdvancedUSBCreator struct {
-	dependencyManager    *DependencyManager
-	progressTracker      *ProgressTracker
-	partitionManager     *AdvancedPartitionManager
-	windows7Workaround   *Windows7UEFIWorkaround
-	consoleSubscriber    *ConsoleProgressSubscriber
+	dependencyManager  *DependencyManager
+	progressTracker    *ProgressTracker
+	partitionManager   *AdvancedPartitionManager
+	windows7Workaround *Windows7UEFIWorkaround
+	consoleSubscriber  *ConsoleProgressSubscriber
 }
 
 // USBCreationConfig contains all configuration for USB creation

@@ -39,20 +39,20 @@ const (
 
 // ISOInfo contains metadata about the Windows ISO
 type ISOInfo struct {
-	Path             string
-	Size             int64
-	Version          string
-	Architecture     string
-	Edition          string
-	Language         string
-	BuildNumber      string
-	IsUEFI           bool
-	HasInstallWim    bool
-	Source           string        // Discovery source: "Downloads", "Desktop", etc.
-	LastModified     time.Time
-	RecommendedFS    FilesystemType
+	Path               string
+	Size               int64
+	Version            string
+	Architecture       string
+	Edition            string
+	Language           string
+	BuildNumber        string
+	IsUEFI             bool
+	HasInstallWim      bool
+	Source             string // Discovery source: "Downloads", "Desktop", etc.
+	LastModified       time.Time
+	RecommendedFS      FilesystemType
 	RequiresWorkaround bool
-	EstimatedUSBSize int64
+	EstimatedUSBSize   int64
 }
 
 // DiskUtilDevice represents a disk device from diskutil
@@ -74,27 +74,27 @@ type DiskUtilDevice struct {
 	DeviceNode       string
 
 	// Enhanced safety and analysis fields
-	SafetyLevel      SafetyLevel
-	USBSpeed         string
-	FreeSpace        int64
-	LastUsedFor      string
-	IsEmberCreated   bool
-	EstimatedSpeed   int64 // bytes per second
-	ContainsBackups  bool
+	SafetyLevel     SafetyLevel
+	USBSpeed        string
+	FreeSpace       int64
+	LastUsedFor     string
+	IsEmberCreated  bool
+	EstimatedSpeed  int64 // bytes per second
+	ContainsBackups bool
 }
 
 // FilesystemAnalysis contains the results of source media analysis
 type FilesystemAnalysis struct {
 	RecommendedFS         FilesystemType
 	RequiresUEFI_NTFS     bool
-	RequiresDualPartition bool    // 2025: Dual-partition scheme needed for large install.wim
+	RequiresDualPartition bool // 2025: Dual-partition scheme needed for large install.wim
 	LargeFiles            []string
 	MaxFileSize           int64
 	TotalSize             int64
 	FileCount             int
 	HasWIMFiles           bool
 	HasInstallWIM         bool
-	InstallWimSize        int64   // 2025: Size of install.wim file specifically
+	InstallWimSize        int64 // 2025: Size of install.wim file specifically
 	WindowsVersion        string
 	RequiresWorkarounds   []string
 }
@@ -294,11 +294,11 @@ func estimateTransferSpeed(busProtocol string) int64 {
 	case strings.Contains(protocol, "usb 3"):
 		return 100 * 1024 * 1024 // ~100 MB/s for USB 3.0
 	case strings.Contains(protocol, "usb 2"):
-		return 25 * 1024 * 1024  // ~25 MB/s for USB 2.0
+		return 25 * 1024 * 1024 // ~25 MB/s for USB 2.0
 	case strings.Contains(protocol, "usb-c"):
 		return 200 * 1024 * 1024 // ~200 MB/s for USB-C
 	default:
-		return 10 * 1024 * 1024  // ~10 MB/s conservative estimate
+		return 10 * 1024 * 1024 // ~10 MB/s conservative estimate
 	}
 }
 
@@ -338,7 +338,7 @@ func checkIfEmberCreated(device *DiskUtilDevice) bool {
 
 	// Check volume label
 	if strings.Contains(strings.ToLower(device.VolumeName), "windows") ||
-	   strings.Contains(strings.ToLower(device.VolumeName), "ember") {
+		strings.Contains(strings.ToLower(device.VolumeName), "ember") {
 		return true
 	}
 
@@ -415,10 +415,10 @@ func determineLastUse(device *DiskUtilDevice) string {
 				name := strings.ToLower(entry.Name())
 				switch {
 				case strings.HasSuffix(name, ".doc") || strings.HasSuffix(name, ".pdf") ||
-				     strings.HasSuffix(name, ".txt"):
+					strings.HasSuffix(name, ".txt"):
 					hasDocuments = true
 				case strings.HasSuffix(name, ".jpg") || strings.HasSuffix(name, ".mp4") ||
-				     strings.HasSuffix(name, ".mp3"):
+					strings.HasSuffix(name, ".mp3"):
 					hasMedia = true
 				case name == "bootmgr" || name == "boot" || strings.HasSuffix(name, ".efi"):
 					hasSystem = true

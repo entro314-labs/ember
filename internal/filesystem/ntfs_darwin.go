@@ -44,4 +44,3 @@ func MakeNTFS(device string) error {
 
 	return nil
 }
-

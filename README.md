@@ -53,7 +53,7 @@ sudo ./ember
 ## 📋 System Requirements
 
 ### Minimum Requirements
-- **Go 1.21+** (for building from source)
+- **go 1.26.5+** (for building from source)
 - **Administrative privileges** (sudo on macOS/Linux)
 - **USB drive** (8GB+ recommended, 16GB+ for Windows 11)
 

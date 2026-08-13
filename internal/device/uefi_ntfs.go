@@ -63,7 +63,7 @@ func createUEFINTFSPartitionGeometry(device string) error {
 	// It contains the UEFI:NTFS bootloader that can chainload from NTFS partitions
 
 	cmd := exec.Command("parted",
-		"--align", "none",  // Misaligned is OK for this small partition
+		"--align", "none", // Misaligned is OK for this small partition
 		"--script",
 		device,
 		"mkpart",
@@ -265,7 +265,7 @@ func (u *UEFINTFSSupport) ValidateUEFINTFSPartition() error {
 	}
 
 	// Size should be at least 512KB (minimum for UEFI:NTFS) and at most 2MB
-	minSize := int64(512 * 1024)    // 512KB
+	minSize := int64(512 * 1024)      // 512KB
 	maxSize := int64(2 * 1024 * 1024) // 2MB
 
 	if size < minSize || size > maxSize {

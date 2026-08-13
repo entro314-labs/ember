@@ -16,26 +16,25 @@ import (
 	"github.com/entro314-labs/ember/internal/types"
 )
 
-
 // AdvancedTUIModel represents the advanced TUI model
 type AdvancedTUIModel struct {
 	// Basic TUI fields
-	state        appState
-	isoPath      string
-	deviceID     string
-	err          error
-	quitting     bool
+	state    appState
+	isoPath  string
+	deviceID string
+	err      error
+	quitting bool
 
 	// Advanced features
-	advancedMode     bool
-	analysis         *types.FilesystemAnalysis
-	creator          *device.AdvancedUSBCreator
-	progressTracker  *device.ProgressTracker
+	advancedMode    bool
+	analysis        *types.FilesystemAnalysis
+	creator         *device.AdvancedUSBCreator
+	progressTracker *device.ProgressTracker
 
 	// TUI components
-	list            list.Model
-	progressBar     progress.Model
-	spinner         spinner.Model
+	list        list.Model
+	progressBar progress.Model
+	spinner     spinner.Model
 
 	// Configuration options
 	forceFilesystem types.FilesystemType
@@ -48,10 +47,10 @@ type AdvancedTUIModel struct {
 	allowLargeFiles bool
 
 	// Progress tracking
-	currentOperation string
-	overallProgress  float64
-	currentFile      string
-	operationStatus  map[string]types.OperationStatus
+	currentOperation  string
+	overallProgress   float64
+	currentFile       string
+	operationStatus   map[string]types.OperationStatus
 	completionSummary map[string]interface{}
 }
 

@@ -31,31 +31,31 @@ var UefiNtfsImg []byte // Changed from UEFI_NTFS_IMG to follow Go naming convent
 
 // Command line flags
 var (
-	showVersion       = flag.Bool("version", false, "Show version information")
-	showHelp          = flag.Bool("help", false, "Show help message")
-	verbose           = flag.Bool("verbose", false, "Enable verbose output")
-	force             = flag.Bool("force", false, "Force operations without confirmation")
-	isoPath           = flag.String("iso", "", "Path to Windows ISO file")
-	deviceID          = flag.String("device", "", "Target device identifier (e.g., disk2)")
-	useGPT            = flag.Bool("gpt", true, "Use GPT partition table (default for 2025, use --mbr to force MBR)")
-	forceMBR          = flag.Bool("mbr", false, "Force MBR partition table (legacy compatibility)")
-	skipValidation    = flag.Bool("skip-validation", false, "Skip ISO and device validation")
-	quiet             = flag.Bool("quiet", false, "Suppress non-essential output")
+	showVersion    = flag.Bool("version", false, "Show version information")
+	showHelp       = flag.Bool("help", false, "Show help message")
+	verbose        = flag.Bool("verbose", false, "Enable verbose output")
+	force          = flag.Bool("force", false, "Force operations without confirmation")
+	isoPath        = flag.String("iso", "", "Path to Windows ISO file")
+	deviceID       = flag.String("device", "", "Target device identifier (e.g., disk2)")
+	useGPT         = flag.Bool("gpt", true, "Use GPT partition table (default for 2025, use --mbr to force MBR)")
+	forceMBR       = flag.Bool("mbr", false, "Force MBR partition table (legacy compatibility)")
+	skipValidation = flag.Bool("skip-validation", false, "Skip ISO and device validation")
+	quiet          = flag.Bool("quiet", false, "Suppress non-essential output")
 
 	// Advanced feature flags
-	forceFilesystem   = flag.String("filesystem", "", "Force filesystem type (FAT32, NTFS, ExFAT)")
-	skipAnalysis      = flag.Bool("skip-analysis", false, "Skip automatic source media analysis")
-	disableUEFI       = flag.Bool("disable-uefi", false, "Disable UEFI boot support")
-	disableLegacy     = flag.Bool("disable-legacy", false, "Disable legacy BIOS boot support")
-	customLabel       = flag.String("label", "Windows USB", "Custom filesystem label")
-	skipDependencies  = flag.Bool("skip-deps", false, "Skip dependency checking")
-	enableAdvanced    = flag.Bool("advanced", false, "Enable advanced features and analysis")
-	showSystemInfo    = flag.Bool("system-info", false, "Show system information and capabilities")
-	analyzeOnly       = flag.Bool("analyze-only", false, "Only analyze source media without creating USB")
-	discoverISOs      = flag.Bool("discover", false, "Discover Windows ISO files on the system")
-	quickFormat       = flag.Bool("quick-format", true, "Use quick format (faster but less thorough)")
-	performanceMode   = flag.Bool("performance-mode", false, "Optimize for speed over compatibility")
-	allowLargeFiles   = flag.Bool("allow-large-files", true, "Allow NTFS for files >4GB (recommended)")
+	forceFilesystem  = flag.String("filesystem", "", "Force filesystem type (FAT32, NTFS, ExFAT)")
+	skipAnalysis     = flag.Bool("skip-analysis", false, "Skip automatic source media analysis")
+	disableUEFI      = flag.Bool("disable-uefi", false, "Disable UEFI boot support")
+	disableLegacy    = flag.Bool("disable-legacy", false, "Disable legacy BIOS boot support")
+	customLabel      = flag.String("label", "Windows USB", "Custom filesystem label")
+	skipDependencies = flag.Bool("skip-deps", false, "Skip dependency checking")
+	enableAdvanced   = flag.Bool("advanced", false, "Enable advanced features and analysis")
+	showSystemInfo   = flag.Bool("system-info", false, "Show system information and capabilities")
+	analyzeOnly      = flag.Bool("analyze-only", false, "Only analyze source media without creating USB")
+	discoverISOs     = flag.Bool("discover", false, "Discover Windows ISO files on the system")
+	quickFormat      = flag.Bool("quick-format", true, "Use quick format (faster but less thorough)")
+	performanceMode  = flag.Bool("performance-mode", false, "Optimize for speed over compatibility")
+	allowLargeFiles  = flag.Bool("allow-large-files", true, "Allow NTFS for files >4GB (recommended)")
 )
 
 func main() {
@@ -413,7 +413,7 @@ func performHeadlessOperation() error {
 	if err != nil {
 		return fmt.Errorf("failed to open Windows ISO: %w", err)
 	}
-	
+
 	if !*quiet {
 		log.Info("ISO opened successfully", "iso_path", *isoPath)
 	}
@@ -497,13 +497,13 @@ func extractISOToDevice(isoUdf *udf.Udf, targetDevice *types.DiskUtilDevice) err
 
 	// Get the Windows partition (first partition)
 	windowsPartition := device.GetBlockDevicePartition(targetDevice.DeviceIdentifier, 1)
-	
+
 	// Create temporary mount point
 	mountPoint := "/tmp/ember-windows"
 	if err := os.MkdirAll(mountPoint, 0755); err != nil {
 		return fmt.Errorf("failed to create mount point: %w", err)
 	}
-	
+
 	// Mount the Windows partition
 	if *verbose {
 		log.Debug("Mounting Windows partition", "partition", windowsPartition, "mount_point", mountPoint)
@@ -516,13 +516,12 @@ func extractISOToDevice(isoUdf *udf.Udf, targetDevice *types.DiskUtilDevice) err
 	if err := iso.ExtractISOToLocation(isoUdf, mountPoint); err != nil {
 		return fmt.Errorf("failed to extract ISO contents: %w", err)
 	}
-	
+
 	if *verbose {
 		log.Debug("ISO extraction completed successfully")
 	}
 	return nil
 }
-
 
 // GetVersion returns the application version
 func GetVersion() string {

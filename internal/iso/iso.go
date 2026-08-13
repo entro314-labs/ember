@@ -145,7 +145,7 @@ func isFileDiskImage(file string) bool {
 }
 
 func isFileUDF(file *os.File) bool {
-	defer func() { 
+	defer func() {
 		if r := recover(); r != nil {
 			// Log recovery for debugging if needed
 			logger.GetLogger().Debug("Recovered from panic in UDF check", "error", r)
@@ -561,10 +561,10 @@ func quickAnalyzeISO(isoInfo *types.ISOInfo) error {
 
 	// Determine smart defaults based on analysis
 	analysis := &types.FilesystemAnalysis{
-		MaxFileSize: isoInfo.Size,
-		TotalSize:   isoInfo.Size,
+		MaxFileSize:    isoInfo.Size,
+		TotalSize:      isoInfo.Size,
 		WindowsVersion: isoInfo.Version,
-		HasInstallWIM: isoInfo.HasInstallWim,
+		HasInstallWIM:  isoInfo.HasInstallWim,
 	}
 
 	// Check for large files that would require NTFS
@@ -579,7 +579,7 @@ func quickAnalyzeISO(isoInfo *types.ISOInfo) error {
 	isoInfo.RequiresWorkaround = isWindows7(isoInfo.Version) && isoInfo.HasInstallWim
 
 	// Estimate required USB size (ISO size + 20% overhead + bootloader space)
-	isoInfo.EstimatedUSBSize = int64(float64(isoInfo.Size) * 1.2) + 100*1024*1024 // 100MB bootloader overhead
+	isoInfo.EstimatedUSBSize = int64(float64(isoInfo.Size)*1.2) + 100*1024*1024 // 100MB bootloader overhead
 
 	return nil
 }
@@ -588,10 +588,10 @@ func quickAnalyzeISO(isoInfo *types.ISOInfo) error {
 func sortISOsByRelevance(isos []*types.ISOInfo) {
 	// Sort by: 1. Source priority, 2. Most recent
 	sourceScore := map[string]int{
-		"Downloads": 4,
-		"Desktop":   3,
-		"Documents": 2,
-		"Ember":     5, // Highest priority for dedicated folder
+		"Downloads":       4,
+		"Desktop":         3,
+		"Documents":       2,
+		"Ember":           5, // Highest priority for dedicated folder
 		"External Drives": 1,
 	}
 
@@ -650,7 +650,6 @@ func DetectDragAndDrop(args []string) (*types.ISOInfo, error) {
 	return nil, fmt.Errorf("no ISO files found in arguments")
 }
 
-
 // determineOptimalFilesystem determines the best filesystem for the given analysis
 func determineOptimalFilesystem(analysis *types.FilesystemAnalysis) types.FilesystemType {
 	// If there are large files (>4GB), we need NTFS
@@ -671,6 +670,6 @@ func determineOptimalFilesystem(analysis *types.FilesystemAnalysis) types.Filesy
 func isWindows7(version string) bool {
 	version = strings.ToLower(version)
 	return strings.Contains(version, "windows 7") ||
-		   strings.Contains(version, "win7") ||
-		   strings.Contains(version, "6.1")
+		strings.Contains(version, "win7") ||
+		strings.Contains(version, "6.1")
 }

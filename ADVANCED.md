@@ -497,7 +497,7 @@ mkfs.fat -F32 -n "UEFI" /dev/sdb2
 
 #### Prerequisites
 ```bash
-# Go 1.21 or later
+# go 1.26 or later
 go version
 
 # Platform-specific tools

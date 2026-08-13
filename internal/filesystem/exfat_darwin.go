@@ -36,4 +36,3 @@ func MakeExFAT(device string) error {
 
 	return nil
 }
-

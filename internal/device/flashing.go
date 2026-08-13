@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/Xmister/udf"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/entro314-labs/ember/internal/iso"
 	"github.com/entro314-labs/ember/internal/types"
 )

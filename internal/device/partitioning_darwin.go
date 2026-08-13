@@ -139,7 +139,7 @@ func CreateUEFINTFSPartitionScheme(deviceID string, gpt bool, installWimSize int
 
 	partitionCmd := []string{
 		"partitionDisk", deviceID, "2", partitionScheme,
-		"ExFAT", "WINDOWS", mainSizeSpec,     // Use calculated main partition size
+		"ExFAT", "WINDOWS", mainSizeSpec, // Use calculated main partition size
 		"MS-DOS FAT32", "UEFI", uefiPartitionSize, // UEFI System Partition (ESP)
 	}
 

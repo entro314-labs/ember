@@ -11,7 +11,6 @@ import (
 	"github.com/entro314-labs/ember/internal/types"
 )
 
-
 type DiskUtilOutput struct {
 	AllDisksAndPartitions []struct {
 		DeviceIdentifier string              `json:"DeviceIdentifier"`
@@ -132,5 +131,3 @@ func getDeviceInfo(deviceIdentifier string) (*types.DiskUtilDevice, error) {
 
 	return &info, nil
 }
-
-

@@ -13,11 +13,11 @@ import (
 
 // Windows7UEFIWorkaround handles Windows 7 UEFI boot compatibility fixes
 type Windows7UEFIWorkaround struct {
-	sourcePath   string
-	targetPath   string
+	sourcePath      string
+	targetPath      string
 	detectedVersion string
-	hasBootmgrEfi bool
-	hasInstallWim bool
+	hasBootmgrEfi   bool
+	hasInstallWim   bool
 }
 
 // NewWindows7UEFIWorkaround creates a new workaround instance

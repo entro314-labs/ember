@@ -22,14 +22,14 @@ type AdvancedPartitionManager struct {
 
 // PartitionConfig defines partition creation parameters
 type PartitionConfig struct {
-	Number      int
-	Type        string // primary, logical, extended
-	Filesystem  string // fat32, ntfs, fat16
-	Start       string // sector or size (e.g., "4MiB", "2048s")
-	End         string // sector or size (e.g., "100%", "-2049s")
-	Label       string
-	Flags       []string // boot, esp, etc.
-	Alignment   string   // optimal, minimal, none
+	Number     int
+	Type       string // primary, logical, extended
+	Filesystem string // fat32, ntfs, fat16
+	Start      string // sector or size (e.g., "4MiB", "2048s")
+	End        string // sector or size (e.g., "100%", "-2049s")
+	Label      string
+	Flags      []string // boot, esp, etc.
+	Alignment  string   // optimal, minimal, none
 }
 
 // NewAdvancedPartitionManager creates a new partition manager
@@ -465,11 +465,11 @@ func (pm *AdvancedPartitionManager) GetPartitionInfo() (map[string]interface{}, 
 	}
 
 	return map[string]interface{}{
-		"device":         pm.device,
+		"device":          pm.device,
 		"partition_table": pm.partitionTable,
-		"lsblk_output":   string(output),
-		"parted_output":  string(partedOutput),
-		"alignment":      pm.alignment,
+		"lsblk_output":    string(output),
+		"parted_output":   string(partedOutput),
+		"alignment":       pm.alignment,
 	}, nil
 }
 

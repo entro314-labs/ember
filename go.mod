@@ -1,6 +1,6 @@
 module github.com/entro314-labs/ember
 
-go 1.25.1
+go 1.26.5
 
 require (
 	github.com/Xmister/udf v0.0.0-20210116171753-6c18325874a7

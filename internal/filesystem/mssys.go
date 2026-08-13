@@ -20,16 +20,16 @@ var MsSysBin []byte // Changed from MsSysBin to follow Go naming conventions
 type BootRecordType int
 
 const (
-	MbrAuto BootRecordType = iota // Changed from MbrAuto to follow Go naming conventions
-	MbrWin7                       // Changed from MbrWin7
-	MbrVista                      // Changed from MbrVista
-	Mbr2000                       // Changed from Mbr2000
-	Mbr95B                        // Changed from Mbr95B
-	MbrDos                        // Changed from MbrDos
-	MbrSyslinux                   // Changed from MBR_SYSLINUX
-	MbrGrub4Dos                   // Changed from MBR_GRUB4DOS
-	MbrGrub2                      // Changed from MBR_GRUB2
-	MbrRufus                      // Changed from MbrRufus
+	MbrAuto     BootRecordType = iota // Changed from MbrAuto to follow Go naming conventions
+	MbrWin7                           // Changed from MbrWin7
+	MbrVista                          // Changed from MbrVista
+	Mbr2000                           // Changed from Mbr2000
+	Mbr95B                            // Changed from Mbr95B
+	MbrDos                            // Changed from MbrDos
+	MbrSyslinux                       // Changed from MBR_SYSLINUX
+	MbrGrub4Dos                       // Changed from MBR_GRUB4DOS
+	MbrGrub2                          // Changed from MBR_GRUB2
+	MbrRufus                          // Changed from MbrRufus
 )
 
 // BootRecordInfo contains information about a boot record type

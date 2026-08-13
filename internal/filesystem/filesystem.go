@@ -22,7 +22,7 @@ const (
 
 // FAT32 limitations
 const (
-	FAT32MaxFileSize     = 4*1024*1024*1024 - 1 // 4GB - 1 byte
+	FAT32MaxFileSize      = 4*1024*1024*1024 - 1          // 4GB - 1 byte
 	FAT32MaxPartitionSize = 2 * 1024 * 1024 * 1024 * 1024 // 2TB theoretical limit
 )
 
@@ -231,11 +231,11 @@ func isModernWindows(version string) bool {
 	// 2025: Consider Windows 10+ as "modern" requiring UEFI/GPT
 	// Windows 8/8.1 now considered legacy
 	return strings.Contains(lower, "windows 10") ||
-		   strings.Contains(lower, "windows 11") ||
-		   strings.Contains(lower, "windows server 2016") ||
-		   strings.Contains(lower, "windows server 2019") ||
-		   strings.Contains(lower, "windows server 2022") ||
-		   strings.Contains(lower, "windows server 2025")
+		strings.Contains(lower, "windows 11") ||
+		strings.Contains(lower, "windows server 2016") ||
+		strings.Contains(lower, "windows server 2019") ||
+		strings.Contains(lower, "windows server 2022") ||
+		strings.Contains(lower, "windows server 2025")
 }
 
 // UserPreferences contains user's preferred settings
@@ -250,13 +250,13 @@ type UserPreferences struct {
 
 // FilesystemCreationOptions contains parameters for filesystem creation
 type FilesystemCreationOptions struct {
-	Type          FilesystemType
-	Label         string
-	QuickFormat   bool
-	ClusterSize   int
-	EnableUEFI    bool
-	RequiresNTFS  bool
-	UserOverride  bool // User explicitly chose this filesystem
+	Type         FilesystemType
+	Label        string
+	QuickFormat  bool
+	ClusterSize  int
+	EnableUEFI   bool
+	RequiresNTFS bool
+	UserOverride bool // User explicitly chose this filesystem
 }
 
 // GetFilesystemCreationOptions returns optimal creation parameters with user preferences
@@ -284,10 +284,10 @@ func GetFilesystemCreationOptions(analysis *FilesystemAnalysis, prefs *UserPrefe
 		if prefs.PerformanceMode {
 			options.ClusterSize = 32768 // 32KB cluster for better performance
 		} else {
-			options.ClusterSize = 4096  // 4KB cluster for compatibility
+			options.ClusterSize = 4096 // 4KB cluster for compatibility
 		}
 	case FilesystemNTFS:
-		options.ClusterSize = 4096  // 4KB cluster for NTFS
+		options.ClusterSize = 4096 // 4KB cluster for NTFS
 		options.RequiresNTFS = true
 	case FilesystemExFAT:
 		options.ClusterSize = 32768 // 32KB cluster for exFAT

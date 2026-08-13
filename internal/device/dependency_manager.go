@@ -13,10 +13,10 @@ import (
 
 // DependencyManager handles system dependency checking and recovery
 type DependencyManager struct {
-	requiredTools     map[string]ToolRequirement
-	optionalTools     map[string]ToolRequirement
-	missingRequired   []string
-	missingOptional   []string
+	requiredTools    map[string]ToolRequirement
+	optionalTools    map[string]ToolRequirement
+	missingRequired  []string
+	missingOptional  []string
 	systemCapability SystemCapability
 }
 
@@ -25,7 +25,7 @@ type ToolRequirement struct {
 	Name         string
 	Commands     []string // Alternative command names
 	Purpose      string
-	Installation string   // Installation instructions
+	Installation string // Installation instructions
 	Critical     bool
 	MinVersion   string
 	CheckVersion func(string) (string, error)
@@ -129,17 +129,17 @@ func (dm *DependencyManager) initializeToolRequirements() {
 
 	// Mount tools (required)
 	dm.requiredTools["mount"] = ToolRequirement{
-		Name:     "mount",
-		Commands: []string{"mount"},
-		Purpose:  "Filesystem mounting",
+		Name:         "mount",
+		Commands:     []string{"mount"},
+		Purpose:      "Filesystem mounting",
 		Installation: "Usually available by default on Unix systems",
 		Critical:     true,
 	}
 
 	dm.requiredTools["umount"] = ToolRequirement{
-		Name:     "umount",
-		Commands: []string{"umount"},
-		Purpose:  "Filesystem unmounting",
+		Name:         "umount",
+		Commands:     []string{"umount"},
+		Purpose:      "Filesystem unmounting",
 		Installation: "Usually available by default on Unix systems",
 		Critical:     true,
 	}
@@ -706,15 +706,15 @@ func (dm *DependencyManager) recoverLinuxDependencies() error {
 // GetSystemInfo returns comprehensive system information
 func (dm *DependencyManager) GetSystemInfo() map[string]interface{} {
 	return map[string]interface{}{
-		"platform":           dm.systemCapability.Platform,
-		"admin_rights":       dm.systemCapability.HasAdminRights,
-		"uefi_support":       dm.systemCapability.SupportsUEFI,
-		"required_tools":     len(dm.requiredTools),
-		"missing_required":   dm.missingRequired,
-		"optional_tools":     len(dm.optionalTools),
-		"missing_optional":   dm.missingOptional,
-		"can_partition":      len(dm.missingRequired) == 0,
-		"can_auto_recover":   runtime.GOOS == "darwin" || runtime.GOOS == "linux",
+		"platform":         dm.systemCapability.Platform,
+		"admin_rights":     dm.systemCapability.HasAdminRights,
+		"uefi_support":     dm.systemCapability.SupportsUEFI,
+		"required_tools":   len(dm.requiredTools),
+		"missing_required": dm.missingRequired,
+		"optional_tools":   len(dm.optionalTools),
+		"missing_optional": dm.missingOptional,
+		"can_partition":    len(dm.missingRequired) == 0,
+		"can_auto_recover": runtime.GOOS == "darwin" || runtime.GOOS == "linux",
 	}
 }
 

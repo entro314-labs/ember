@@ -223,7 +223,7 @@ func (pt *ProgressTracker) FailOperation(id string, err error) {
 	op.Status = StatusFailed
 	op.Error = err
 	op.EndTime = &now
-	opName := op.Name     // Copy name to avoid accessing op after unlock
+	opName := op.Name         // Copy name to avoid accessing op after unlock
 	opProgress := op.Progress // Copy progress value
 	op.mu.Unlock()
 
@@ -252,7 +252,7 @@ func (pt *ProgressTracker) CancelOperation(id string) {
 	op.mu.Lock()
 	op.Status = StatusCanceled
 	op.EndTime = &now
-	opName := op.Name     // Copy name to avoid accessing op after unlock
+	opName := op.Name         // Copy name to avoid accessing op after unlock
 	opProgress := op.Progress // Copy progress value
 	op.mu.Unlock()
 
