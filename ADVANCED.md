@@ -66,7 +66,7 @@ Output includes:
 - Recommended partition scheme
 
 #### Modern Filesystem Selection
-```text
+```tree
 Decision Matrix (2025):
 ├── install.wim > 4GB     → NTFS + Dual-partition
 ├── Windows 10/11         → NTFS (performance)
@@ -252,7 +252,7 @@ Device Selection:
 
 ### Core Components
 
-```text
+```tree
 Ember Architecture:
 ┌─────────────────────────────────────┐
 │ CLI Interface (cmd/ember/main.go)               │
@@ -523,7 +523,7 @@ GOOS=darwin GOARCH=arm64 go build -o ember-macos-arm64 ./cmd/ember
 
 ### Project Structure
 
-```text
+```tree
 ember/
 ├── cmd/ember/              # Main application entry point
 │   └── main.go            # CLI interface and flag parsing
@@ -553,7 +553,7 @@ ember/
 ### Adding Platform Support
 
 #### 1. Create Platform-Specific Files
-```text
+```tree
 internal/device/
 ├── partitioning_darwin.go   # macOS implementation
 ├── partitioning_linux.go    # Linux implementation
@@ -734,7 +734,7 @@ Benefits:
 ### USB Speed Optimization
 
 #### USB 3.0+ Detection
-```text
+```tree
 Device Analysis:
 ├─ USB 3.0+ → Performance mode recommended
 ├─ USB 2.0  → Compatibility mode recommended
